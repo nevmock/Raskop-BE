@@ -1,51 +1,49 @@
-import { Request, Response } from 'express';
-import IController from '../../interfaces/controller-interface';
-import UserService from './user-services';
-import statusCodes from '../../errors/status-codes';
+const TestService = require('./test-services');
+const statusCodes = require('../../errors/status-codes');
 
-class UserController {
+class TestController {
    async index(req, res) {
-      const users = await UserService.getAll();
+      const tests = await TestService.getAll();
 
       // return res.send('Staging Test');
       return res.status(200).json({
          code: 200,
          status: 'OK',
          data: {
-            users,
+            tests,
          },
       });
    }
 
-   async create(req, res: Response): Promise<Response> {
-      // await UserService.create(req.body);
+   async create(req, res) {
+      await TestService.create(req.body);
 
       return res.status(200).json({
-         code: 'SUCCESS_CREATE_USER',
+         code: 'SUCCESS_CREATE_TEST',
          status: 'OK',
          data: {
-            message: 'User created!',
+            message: 'Test created!',
          },
       });
    }
 
-   async show(req: Request, res: Response): Promise<Response> {
-      const user = await UserService.findById(
-         parseInt(req.params.user_id || ''),
+   async show(req, res) {
+      const test = await TestService.findById(
+         parseInt(req.params.test_id || ''),
       );
 
       return res.status(200).json({
          code: 200,
          status: 'OK',
          data: {
-            user,
+            test,
          },
       });
    }
 
-   async updatePassword(req: Request, res: Response): Promise<Response> {
-      await UserService.updatePassword(
-         parseInt(req.params.user_id!),
+   async updatePassword(req, res) {
+      await TestService.updatePassword(
+         parseInt(req.params.test_id),
          req.body.oldPassword,
          req.body.newPassword,
       );
@@ -54,12 +52,12 @@ class UserController {
          code: 200,
          status: 'OK',
          data: {
-            message: 'User password was update!',
+            message: 'Test password was update!',
          },
       });
    }
 
-   async update(req: Request, res: Response): Promise<Response> {
+   async update(req, res) {
       const obj = JSON.parse(JSON.stringify({ ...req.files }));
 
       let data = {
@@ -73,27 +71,27 @@ class UserController {
          };
       }
 
-      await UserService.update(parseInt(req.params.user_id!), data);
+      await TestService.update(parseInt(req.params.test_id), data);
 
       return res.status(200).json({
          code: 200,
          status: 'OK',
          data: {
-            message: 'User profile was update!',
+            message: 'Test was update!',
          },
       });
    }
 
-   async delete(req: Request, res: Response): Promise<Response> {
-      await UserService.delete(parseInt(req.params.user_id || ''));
+   async delete(req, res) {
+      await TestService.delete(parseInt(req.params.test_id || ''));
       return res.status(200).json({
          code: 200,
          status: 'OK',
          data: {
-            message: 'User was deleted!',
+            message: 'Test was deleted!',
          },
       });
    }
 }
 
-export default new UserController();
+module.exports = new TestController();

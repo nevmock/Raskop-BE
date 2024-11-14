@@ -8,6 +8,7 @@ const cors = require("cors");
 const apicache = require("apicache");
 const multer = require("multer");
 const errorHandler = require("./middlewares/error-handler-middleware");
+const testRoutes = require("./domains/test/test-routes");
 require("dotenv").config();
 
 class ExpressApplication {
@@ -47,7 +48,7 @@ class ExpressApplication {
     this.app.use(cors());
     //  __init__
     this.configureAssets();
-    //  this.setupRoute();
+    this.setupRoute();
     this.setupMiddlewares([errorHandler, express.json(), express.urlencoded(), apicache.middleware("5 minutes")]);
     this.setupLibrary([
       process.env.NODE_ENV === "development" ? morgan("dev") : "",
@@ -63,12 +64,9 @@ class ExpressApplication {
     });
   }
 
-  //   setupRoute() {
-  //        this.app.use('/api/v1/auth', authRoutes);
-  //        this.app.use('/api/v1/user', userRoutes);
-  //        this.app.use('/api/v1/transfer', TransferRoutes);
-  //        this.app.use('/api/v1/redeem', redeemRoutes);
-  //   }
+    setupRoute() {
+         this.app.use('/api/v1/test', testRoutes);
+    }
 
   configureAssets() {
     this.app.use(express.static(path.join(__dirname, "../public")));
