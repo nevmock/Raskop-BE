@@ -8,6 +8,7 @@ const cors = require("cors");
 const apicache = require("apicache");
 const multer = require("multer");
 const errorHandler = require("./middlewares/error-handler-middleware");
+require("dotenv").config();
 
 class ExpressApplication {
   app;
@@ -75,7 +76,9 @@ class ExpressApplication {
 
   setupLibrary(libraries) {
     libraries.forEach((library) => {
-      this.app.use(library);
+        if (library != "" && library != null) {
+            this.app.use(library);
+        }
     });
   }
 
