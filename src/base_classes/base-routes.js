@@ -1,12 +1,11 @@
-import { Router } from 'express';
+const Router = require("express");
 
 class BaseRoutes {
-   router;
+  router;
 
-   constructor() {
-      this.router = Router();
-      this.routes();
-   }
+  constructor() {
+    this.router = Router();
+  }
 }
 
-export default BaseRoutes;
+module.exports = BaseRoutes;
