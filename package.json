@@ -1,4 +1,13 @@
 {
+  "name": "expressjs_typescript",
+   "version": "1.0.0",
+   "description": "",
+   "main": "server.js",
+   "scripts": {
+      "start:dev": "cross-env NODE_ENV=development && nodemon src/server.js",
+      "start:prod": "cross-env NODE_ENV=production",
+      "start": "cross-env NODE_ENV=development"
+   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "apicache": "^1.6.3",
@@ -21,3 +30,4 @@
     "ws": "^8.18.0"
   }
 }
+
