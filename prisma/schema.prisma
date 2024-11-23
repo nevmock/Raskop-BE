@@ -21,3 +21,17 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Table {
+  id           String   @id @default(uuid())
+  min_capacity Int
+  max_capacity Int
+  image_uri    String?
+  description  String?
+  no_table     String   @unique
+  is_outdoor   Boolean
+  is_active    Boolean
+  barcode      String?
+
+  @@map("table")
+}

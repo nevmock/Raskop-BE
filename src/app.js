@@ -1,15 +1,16 @@
-const express = require("express");
-const path = require("path");
-const morgan = require("morgan");
-const logger = require("./utils/logger");
-const compression = require("compression");
-const helmet = require("helmet");
-const cors = require("cors");
-const apicache = require("apicache");
-const multer = require("multer");
-const errorHandler = require("./middlewares/error-handler-middleware");
-const testRoutes = require("./domains/test/test-routes");
-require("dotenv").config();
+import "dotenv/config";
+
+import apicache from "apicache";
+import compression from "compression";
+import cors from "cors";
+import errorHandler from "./middlewares/error-handler-middleware";
+import express from "express";
+import helmet from "helmet";
+import logger from "./utils/logger";
+import morgan from "morgan";
+import multer from "multer";
+import path from "path";
+import testRoutes from "./domains/test/test-routes";
 
 class ExpressApplication {
   app;
@@ -22,7 +23,11 @@ class ExpressApplication {
     },
   });
   fileFilter = (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/jpeg") {
+    if (
+      file.mimetype === "image/png" ||
+      file.mimetype === "image/jpg" ||
+      file.mimetype === "image/jpeg"
+    ) {
       cb(null, true);
     } else {
       cb(null, false);
@@ -49,7 +54,12 @@ class ExpressApplication {
     //  __init__
     this.configureAssets();
     this.setupRoute();
-    this.setupMiddlewares([errorHandler, express.json(), express.urlencoded(), apicache.middleware("5 minutes")]);
+    this.setupMiddlewares([
+      errorHandler,
+      express.json(),
+      express.urlencoded(),
+      apicache.middleware("5 minutes"),
+    ]);
     this.setupLibrary([
       process.env.NODE_ENV === "development" ? morgan("dev") : "",
       compression(),
@@ -64,9 +74,9 @@ class ExpressApplication {
     });
   }
 
-    setupRoute() {
-         this.app.use('/api/v1/test', testRoutes);
-    }
+  setupRoute() {
+    this.app.use("/api/v1/test", testRoutes);
+  }
 
   configureAssets() {
     this.app.use(express.static(path.join(__dirname, "../public")));
@@ -74,9 +84,9 @@ class ExpressApplication {
 
   setupLibrary(libraries) {
     libraries.forEach((library) => {
-        if (library != "" && library != null) {
-            this.app.use(library);
-        }
+      if (library != "" && library != null) {
+        this.app.use(library);
+      }
     });
   }
 
@@ -87,4 +97,4 @@ class ExpressApplication {
   }
 }
 
-module.exports = ExpressApplication;
+export default ExpressApplication;

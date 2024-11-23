@@ -1,13 +1,19 @@
 {
   "name": "expressjs_typescript",
-   "version": "1.0.0",
-   "description": "",
-   "main": "server.js",
-   "scripts": {
-      "start:dev": "cross-env NODE_ENV=development && nodemon src/server.js",
-      "start:prod": "cross-env NODE_ENV=production",
-      "start": "cross-env NODE_ENV=development"
-   },
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "jest": {
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
+  },
+  "scripts": {
+    "start:dev": "cross-env NODE_ENV=development && nodemon src/server.js",
+    "start:prod": "cross-env NODE_ENV=production",
+    "start": "cross-env NODE_ENV=development"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "apicache": "^1.6.3",
@@ -28,6 +34,11 @@
     "prisma": "^5.22.0",
     "winston": "^3.17.0",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.20.2",
+    "babel-jest": "^29.4.2",
+    "jest": "^29.4.2",
+    "supertest": "^6.3.3"
   }
 }
-
