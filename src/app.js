@@ -3,14 +3,16 @@ import "dotenv/config";
 import apicache from "apicache";
 import compression from "compression";
 import cors from "cors";
-import errorHandler from "./middlewares/error-handler-middleware";
+import errorHandler from './middlewares/error-handler-middleware.js';
 import express from "express";
 import helmet from "helmet";
-import logger from "./utils/logger";
+import logger from "./utils/logger.js";
 import morgan from "morgan";
 import multer from "multer";
 import path from "path";
-import testRoutes from "./domains/test/test-routes";
+import testRoutes from "./domains/test/test-routes.js";
+import { __dirname, __filename } from "./utils/path.js";
+import supplierRoutes from "./domains/supplier/supplier-routes.js";
 
 class ExpressApplication {
   app;
@@ -73,9 +75,8 @@ class ExpressApplication {
       this.app.use(middleware);
     });
   }
-
   setupRoute() {
-    this.app.use("/api/v1/test", testRoutes);
+    this.app.use("/api/supplier", supplierRoutes);
   }
 
   configureAssets() {

@@ -1,5 +1,5 @@
-const TestService = require("./test-services");
-const statusCodes = require("../../errors/status-codes");
+import testServices from "./test-services.js";
+import statusCodes from "../../errors/status-codes.js";
 
 class TestController {
   async index(req, res) {
@@ -88,4 +88,4 @@ class TestController {
   }
 }
 
-module.exports = new TestController();
+export default new TestController();

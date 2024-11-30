@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   BAD_REQUEST: {
     code: 400,
     message: "Bad Request",

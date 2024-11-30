@@ -1,11 +1,16 @@
-const Router = require("express");
+import { Router } from "express";
 
 class BaseRoutes {
   router;
 
   constructor() {
     this.router = Router();
+    this.routes();
+  }
+
+  routes() {
+    throw new Error("Routes method must be implemented in child classes.");
   }
 }
 
-module.exports = BaseRoutes;
+export default BaseRoutes;

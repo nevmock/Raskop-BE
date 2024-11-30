@@ -12,4 +12,4 @@ const tryCatch =
       }
    };
 
-module.exports = tryCatch;
+export default tryCatch;

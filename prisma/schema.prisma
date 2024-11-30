@@ -13,25 +13,150 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+// model User {
+//   id        String   @id @default(cuid())
+//   email     String   @unique
+//   name      String?
+//   password  String
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   deletedAt DateTime?
+// }
 
 model Table {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   min_capacity Int
   max_capacity Int
-  image_uri    String?
-  description  String?
-  no_table     String   @unique
+  image_uri    String?   @db.Text
+  description  String?   @db.Text
+  no_table     String    @unique
   is_outdoor   Boolean
-  is_active    Boolean
   barcode      String?
+  is_active    Boolean
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  detail_reservasis DetailReservasi[]
 
   @@map("table")
+}
+
+model Menu {
+  id          String    @id @default(uuid())
+  name        String
+  price       Float
+  description String    @db.Text
+  category    String
+  image_uri   String?   @db.Text
+  qty         Int       @default(0)
+  is_active   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  order_details OrderDetail[]
+
+  @@map("menu")
+}
+
+model Supplier {
+  id           String       @id @default(uuid())
+  name         String
+  contact      String
+  type         SupplierType
+  product_name String
+  price        Float
+  shipping_fee Float
+  address      String       @db.Text
+  unit         Unit
+  is_active    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  @@map("supplier")
+}
+
+model Reservasi {
+  id              String            @id @default(uuid())
+  reserve_by      String
+  community       String
+  phone_number    String
+  note            String?           @db.Text
+  start           DateTime
+  end             DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  detail_reservasis DetailReservasi[]
+  orders            Order[]
+
+  @@map("reservasi")
+}
+
+model DetailReservasi {
+  id           String    @id @default(uuid())
+  reservasi_id String
+  table_id     String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  reservasi Reservasi @relation(fields: [reservasi_id], references: [id])
+  table     Table     @relation(fields: [table_id], references: [id])
+
+  @@map("detail_reservasi")
+}
+
+model Order {
+  id           String    @id @default(uuid())
+  reservasi_id String?
+  order_by     String
+  phone_number String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  reservasi Reservasi? @relation(fields: [reservasi_id], references: [id])
+  order_detail OrderDetail[]
+
+  @@map("order")
+}
+
+model OrderDetail {
+  id        String    @id @default(uuid())
+  order_id  String
+  menu_id   String
+  qty       Int
+  price     Float
+  note      String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  menu      Menu     @relation(fields: [menu_id], references: [id])
+  order    Order    @relation(fields: [order_id], references: [id])
+
+  @@map("order_detail")
+}
+
+enum SupplierType {
+  SYRUPE
+  BEANS
+  POWDER
+  CUP
+  SNACK
+  OTHER_INGREDIENT @map("OTHER INGREDIENT")
+}
+
+enum Unit {
+  KG
+  LITER
+  GRAM
+  ML
+  PIECE
+  BOX
+  BALL
 }

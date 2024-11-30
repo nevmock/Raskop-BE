@@ -1,7 +1,7 @@
 // import db from "../../models";
 
-const statusCodes = require("../../errors/status-codes");
-const BaseError = require("../../base_classes/base-error");
+import statusCodes from "../../errors/status-codes.js";
+import BaseError from "../../base_classes/base-error.js";
 
 class TestServices {
   getAll = async () => {
@@ -79,4 +79,4 @@ class TestServices {
   };
 }
 
-module.exports = new TestServices();
+export default new TestServices();

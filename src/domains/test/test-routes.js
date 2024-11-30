@@ -1,6 +1,6 @@
-const TestController = require('./test-controller');
-const BaseRoutes = require('../../base_classes/base-routes');
-const tryCatch = require('../../utils/tryCatcher');
+import TestController from './test-controller.js';
+import BaseRoutes from '../../base_classes/base-routes.js';
+import tryCatch from '../../utils/tryCatcher.js';
 
 
 class TestRoutes extends BaseRoutes {
@@ -13,4 +13,4 @@ class TestRoutes extends BaseRoutes {
    }
 }
 
-module.exports = new TestRoutes().router;
+export default new TestRoutes().router;

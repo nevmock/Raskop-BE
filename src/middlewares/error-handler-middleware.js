@@ -1,9 +1,9 @@
-const logger = require("../utils/logger");
-const BaseError = require("../base_classes/base-error");
-const StatusCodes = require("../errors/status-codes");
-const { INVALID_CREDENTIALS, SERVER_PROBLEM } = require("../errors/error-codes");
+import logger from "../utils/logger.js";
+import BaseError from "../base_classes/base-error.js";
+import StatusCodes from "../errors/status-codes.js";
+import { INVALID_CREDENTIALS, SERVER_PROBLEM } from "../errors/error-codes.js";
 
-const errorHandler = (err, _req, res, _next) => {
+export const errorHandler = (err, _req, res, _next) => {
   const statusCode = Object.values(StatusCodes).find((code) => code.message === err.statusCode);
 
   if (err.name === "ValidationError") {
@@ -44,4 +44,4 @@ const errorHandler = (err, _req, res, _next) => {
   });
 };
 
-module.exports = errorHandler;
+export default errorHandler;
