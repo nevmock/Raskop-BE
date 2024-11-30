@@ -1,3 +1,7 @@
+import camelize from "camelize";
+import BaseError from "../../base_classes/base-error.js";
+import statusCodes from "../../errors/status-codes.js";
+import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import SupplierRepository from "./supplier-repository.js";
 
 class SupplierServices {
@@ -6,17 +10,35 @@ class SupplierServices {
     }
     
     getAll = async () => {
-      const suppliers = await this.SupplierRepository.get();
+      let suppliers = await this.SupplierRepository.get();
+
+      suppliers = camelize(suppliers);
 
       return suppliers;
     };
 
     create = async (data) => {
-      const supplier = await this.SupplierRepository.create({
-        data : data
-      });
+      data = convertKeysToSnakeCase(data)
+
+      let supplier = await this.SupplierRepository.create(data);
+
+      supplier = camelize(supplier);
 
       return supplier;
+    }
+
+    update = async (id, data) => {
+        const isExist = await this.SupplierRepository.getById(id);
+        if (!isExist) {
+            throw BaseError.notFound("Supplier does not exist");
+        }
+        data = convertKeysToSnakeCase(data)
+
+        let supplier = await this.SupplierRepository.update(id, data);
+
+        supplier = camelize(supplier);
+
+        return supplier;
     }
   
     // findById = async (supplierId) => {

@@ -16,7 +16,13 @@ export const errorHandler = (err, _req, res, _next) => {
     return res.status(StatusCodes.BAD_REQUEST.code).json({
       code: 400,
       status: StatusCodes.BAD_REQUEST.message,
-      errors: errorObj,
+      recordsTotal: 0,
+      data: null,
+      errors: {
+        name: err.name,
+        message: err.message,
+        validation: errorObj,
+      },
     });
   }
 
@@ -29,17 +35,25 @@ export const errorHandler = (err, _req, res, _next) => {
     return res.status(statusCode.code).json({
       code: err.errorCode,
       status: err.statusCode,
+      recordsTotal: 0,
+      data: null,
       errors: {
+        name: err.errorName,
         message: err.message,
+        validation: null
       },
     });
   }
-
+  console.error(err);
   return res.status(StatusCodes.INTERNAL_SERVER.code).json({
     code: 500,
     status: StatusCodes.INTERNAL_SERVER.message,
+    recordsTotal: 0,
+    data: null,
     errors: {
+      name: err.name,
       message: err.message,
+      validation: null
     },
   });
 };

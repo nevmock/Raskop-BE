@@ -27,4 +27,12 @@ export default {
     code: 477,
     message: "Params Format Not Registered In Application",
   },
+  OK: {
+    code: 200,
+    message: "OK",
+  },
+  CREATED: {
+    code: 201,
+    message: "Created",
+  },
 };

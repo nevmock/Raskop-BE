@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -33,9 +34,9 @@ model Table {
   is_outdoor   Boolean
   barcode      String?
   is_active    Boolean
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
 
   detail_reservasis DetailReservasi[]
 
@@ -51,9 +52,9 @@ model Menu {
   image_uri   String?   @db.Text
   qty         Int       @default(0)
   is_active   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime?
 
   order_details OrderDetail[]
 
@@ -71,9 +72,9 @@ model Supplier {
   address      String       @db.Text
   unit         Unit
   is_active    Boolean      @default(false)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  deletedAt    DateTime?
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  deleted_at    DateTime?
 
   @@map("supplier")
 }
@@ -86,9 +87,9 @@ model Reservasi {
   note            String?           @db.Text
   start           DateTime
   end             DateTime
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  deletedAt       DateTime?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  deleted_at       DateTime?
 
   detail_reservasis DetailReservasi[]
   orders            Order[]
@@ -100,9 +101,9 @@ model DetailReservasi {
   id           String    @id @default(uuid())
   reservasi_id String
   table_id     String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
 
   reservasi Reservasi @relation(fields: [reservasi_id], references: [id])
   table     Table     @relation(fields: [table_id], references: [id])
@@ -115,9 +116,9 @@ model Order {
   reservasi_id String?
   order_by     String
   phone_number String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
 
   reservasi Reservasi? @relation(fields: [reservasi_id], references: [id])
   order_detail OrderDetail[]
@@ -132,9 +133,9 @@ model OrderDetail {
   qty       Int
   price     Float
   note      String?   @db.Text
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 
   menu      Menu     @relation(fields: [menu_id], references: [id])
   order    Order    @relation(fields: [order_id], references: [id])

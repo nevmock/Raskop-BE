@@ -7,7 +7,24 @@ class SupplierRepository extends BaseRepository {
             model: db.supplier,
             params: {}
         });
-        this.db = db;
+    }
+
+    async create(data) {
+        let { deleted_at, ...filteredData} = data;
+
+        this.toFloat(filteredData, ['price', 'shipping_fee']);
+        this.toBoolean(filteredData, ['is_active']);
+
+        return await super.create(filteredData);
+    }
+
+    async update(id, data) {
+        let { deleted_at, ...filteredData} = data;
+
+        this.toFloat(filteredData, ['price', 'shipping_fee']);
+        this.toBoolean(filteredData, ['is_active']);
+
+        return await super.update(id, filteredData);
     }
 }
 
