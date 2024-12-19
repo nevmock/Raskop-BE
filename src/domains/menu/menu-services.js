@@ -9,7 +9,7 @@ class MenuServices {
     this.MenuRepository = MenuRepository;
   }
 
-  getAll = async () => {
+  async getAll() {
     let menus = await this.MenuRepository.get();
 
     menus = camelize(menus);
