@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 const app = new ExpressApplication(PORT);
 const server = app.start();
 
+
 process.on("SIGTERM", () => {
   logger.warn('SIGTERM RECIEVED!');
   server.close(() => {
