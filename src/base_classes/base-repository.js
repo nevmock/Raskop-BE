@@ -1,22 +1,29 @@
 class BaseRepository {
-    constructor({ model, params = {} }) {
+    constructor({ model }) {
         this.model = model;
-        this.params = params;
     }
 
     async get(params = {}) {
-        return this.model.findMany({
+        const data = await this.model.findMany({
             ...params,
-            ...this.params,
+        })
+
+        const total = await this.model.count({
+            where: params.where
         });
+
+        return {
+            data : data,
+            total : total
+        };
     }
     
     async getById(id, params = {}) {
         return this.model.findUnique({
             where: {
                 id: id,
+                ...params.where
             },
-            ...this.params,
         });
     }
 
@@ -46,6 +53,14 @@ class BaseRepository {
         });
     }
 
+    async deletePermanent(id) {
+        return this.model.delete({
+            where: {
+                id: id,
+            },
+        });
+    }
+
     toFloat(data, dataKeys) {
         dataKeys.forEach((key) => {
             data[key] = parseFloat(data[key]);
@@ -54,9 +69,17 @@ class BaseRepository {
 
     toBoolean(data, dataKeys) {
         dataKeys.forEach((key) => {
-            data[key] = (data[key].toLowerCase() === 'true' || data[key] === true);
+            data[key] = (data[key] === 'true' || data[key] === true);
         });
     }
+
+    // toInt(data, dataKeys) {
+    //     dataKeys.forEach((key) => {
+    //         data[key] = parseInt(data[key]);
+    //     });
+    // }
+
+    
 }
 
 export default BaseRepository;

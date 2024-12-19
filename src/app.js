@@ -10,9 +10,11 @@ import logger from "./utils/logger.js";
 import morgan from "morgan";
 import multer from "multer";
 import path from "path";
-import testRoutes from "./domains/test/test-routes.js";
 import { __dirname, __filename } from "./utils/path.js";
 import supplierRoutes from "./domains/supplier/supplier-routes.js";
+
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./utils/swagger.js";
 
 class ExpressApplication {
   app;
@@ -76,7 +78,9 @@ class ExpressApplication {
     });
   }
   setupRoute() {
-    this.app.use("/api/supplier", supplierRoutes);
+    this.app.use("/api/v1/supplier", supplierRoutes);
+
+    this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
 
   configureAssets() {

@@ -5,7 +5,6 @@ class SupplierRepository extends BaseRepository {
     constructor() {
         super({ 
             model: db.supplier,
-            params: {}
         });
     }
 
