@@ -1,0 +1,418 @@
+paths:
+  /supplier: 
+    get:             
+      tags:
+        - Supplier
+      summary: Get supplier datas
+      parameters:
+        - name: id
+          in: query
+          description: <b>PRIORITY</b> ID of the supplier
+          required: false
+          schema:
+            type: string
+            example: "13087215-815c-4b98-b383-e57e0157eb7c"
+
+        - name: page
+          in: query
+          description: Pagination page
+          required: false
+          schema:
+            type: number
+            example: 1
+
+        - name: limit
+          in: query
+          description: Pagination Limit
+          required: false
+          schema:
+            type: number
+            example: 10
+
+        - name: search
+          in: query
+          description: Search can be name, contact, type, productName, price, shippingFee, address, unit, isActive
+          required: false
+          schema:
+            type: string
+            example: "Supplier 1"
+
+        - name: sortBy
+          in: query
+          description: Sort By
+          required: false
+          schema:
+            type: string
+            enum: [name, contact, type, productName, price, shippingFee, address, unit, createdAt, updatedAt]  
+
+        - name: sortType
+          in: query
+          description: Sort Type
+          required: false
+          schema:
+            type: string
+            enum: [ASC, DESC]
+
+        - name: withDeleted
+          in: query
+          description: Include deleted data
+          required: false
+          schema:
+            type: boolean
+            example: true
+
+        - name: createdStart
+          in: query
+          description: Created date start
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2021-01-01T00:00:00Z"
+
+        - name: createdEnd
+          in: query
+          description: Created date end
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2021-01-01T00:00:00Z"
+          
+      responses: 
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          
+                        name:
+                          type: string
+                          minLength: 3
+                          maxLength: 150
+                        contact:
+                          type: string
+                          minLength: 3
+                          maxLength: 12
+                        type:
+                          type: string
+                          enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                        productName:
+                          type: string
+                        price:
+                          type: number
+                          format: float
+                        shippingFee:
+                          type: number
+                          format: float
+                        address:
+                          type: string
+                        unit:
+                          type: string
+                          enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                        isActive:
+                          type: boolean
+                  errors: 
+                    type: NULL
+        200 with ID:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      contact:
+                        type: string
+                        minLength: 3
+                        maxLength: 12
+                      type:
+                        type: string
+                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                      productName:
+                        type: string
+                      price:
+                        type: number
+                        format: float
+                      shippingFee:
+                        type: number
+                        format: float
+                      address:
+                        type: string
+                      unit:
+                        type: string
+                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                      isActive:
+                        type: boolean
+                  errors: 
+                    type: NULL
+        
+        404:
+          description: No supplier data found
+        500:
+          description: Internal server error
+      
+      
+
+    post:
+      tags:
+        - Supplier
+      summary: Create or Update supplier data
+      parameters:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  required: false
+                name:
+                  type: string
+                  required: true
+                  minLength: 3
+                  maxLength: 150
+                contact:
+                  type: string
+                  format: 
+                  required: true
+                  minLength: 3
+                  maxLength: 12
+                type:
+                  type: string
+                  required: true
+                  enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                productName:
+                  type: string
+                  required: true
+                price:
+                  type: number
+                  format: float
+                  required: true
+                shippingFee:
+                  type: number
+                  format: float
+                  required: true
+                address:
+                  type: string
+                  required: true
+                unit:
+                  type: string
+                  required: true
+                  enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                isActive:
+                  type: boolean
+                  default: false
+            examples:
+              Create Supplier:
+                value:
+                  name: "Supplier 1"
+                  contact: "09123456789"
+                  type: "SYRUPE"
+                  productName: "Syrup 1"
+                  price: 100.00
+                  shippingFee: 10.00
+                  address: "Supplier 1 Address"
+                  unit: "KG"
+                  isActive: true
+              Update Supplier:
+                value:
+                  id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                  name: "Supplier 1"
+                  contact: "09123456789"
+                  type: "SYRUPE"
+                  productName: "Syrup 1"
+                  price: 100.00
+                  shippingFee: 10.00
+                  address: "Supplier 1 Address"
+                  unit: "KG"
+                  isActive: true
+      responses: 
+        200:
+          description: Supplier data updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          
+                        name:
+                          type: string
+                          minLength: 3
+                          maxLength: 150
+                        contact:
+                          type: string
+                          minLength: 3
+                          maxLength: 12
+                        type:
+                          type: string
+                          enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                        productName:
+                          type: string
+                        price:
+                          type: number
+                          format: float
+                        shippingFee:
+                          type: number
+                          format: float
+                        address:
+                          type: string
+                        unit:
+                          type: string
+                          enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                        isActive:
+                          type: boolean
+                  errors: 
+                    type: NULL
+
+
+
+        201:
+          description: Supplier data created
+        404:
+          description: No supplier data found
+        500:
+          description: Internal server error
+
+
+    delete:
+      tags:
+        - Supplier
+      summary: Delete supplier data
+
+      parameters:
+        - name: id
+          in: query
+          description: ID of the supplier
+          required: true
+          schema:
+            type: string
+        - name: permanent
+          in: query
+          description: Permanent delete
+          required: false
+          schema:
+            type: boolean
+
+      responses: 
+        200 with ID:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      contact:
+                        type: string
+                        minLength: 3
+                        maxLength: 12
+                      type:
+                        type: string
+                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                      productName:
+                        type: string
+                      price:
+                        type: number
+                        format: float
+                      shippingFee:
+                        type: number
+                        format: float
+                      address:
+                        type: string
+                      unit:
+                        type: string
+                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                      isActive:
+                        type: boolean
+                  errors: 
+                    type: NULL
+        
+        404:
+          description: No supplier data found
+        500:
+          description: Internal server error

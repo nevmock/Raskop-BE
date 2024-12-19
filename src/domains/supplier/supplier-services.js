@@ -9,12 +9,28 @@ class SupplierServices {
         this.SupplierRepository = SupplierRepository;
     }
     
-    getAll = async () => {
-      let suppliers = await this.SupplierRepository.get();
+    getAll = async (params = {}) => {
+      let suppliers = await this.SupplierRepository.get({
+        ...params,
+      });
 
       suppliers = camelize(suppliers);
 
       return suppliers;
+    };
+
+    getById = async (id, params = {}) => {
+        let supplier = await this.SupplierRepository.getById(id, {
+            ...params,
+        });
+
+        if (!supplier) {
+            throw BaseError.notFound("Supplier does not exist");
+        }
+    
+        supplier = camelize(supplier);
+    
+        return supplier;
     };
 
     create = async (data) => {
@@ -39,6 +55,33 @@ class SupplierServices {
         supplier = camelize(supplier);
 
         return supplier;
+    }
+
+    delete = async (id) => {
+        const params = {
+            where: {
+                deleted_at: null,
+            },
+        }
+
+        const isExist = await this.SupplierRepository.getById(id, params);
+
+        if (!isExist) {
+            throw BaseError.notFound("Supplier does not exist");
+        }
+
+        await this.SupplierRepository.delete(id);
+    }
+
+    deletePermanent = async (id) => {
+        
+        const isExist = await this.SupplierRepository.getById(id);
+
+        if (!isExist || isExist.deleted_at) {
+            throw BaseError.notFound("Supplier does not exist");
+        }
+
+        await this.SupplierRepository.deletePermanent(id);
     }
   
     // findById = async (supplierId) => {
