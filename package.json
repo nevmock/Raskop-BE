@@ -13,7 +13,7 @@
     "dev": "cross-env NODE_ENV=development && nodemon netlify/functions/server/index.js",
     "prod": "cross-env NODE_ENV=production",
     "start": "cross-env NODE_ENV=development",
-    "build": "npx babel src -d dist"
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "@netlify/functions": "^3.0.0",
