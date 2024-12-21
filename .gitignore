@@ -8,4 +8,5 @@ prisma/migrations
 
 
 # APP
-public/*
+#public/*
+.dist
