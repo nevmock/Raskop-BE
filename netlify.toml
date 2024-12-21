@@ -3,6 +3,10 @@ command = "npm run build"
 publish = "public"
 
 [functions]
-directory = "netlify/functions/server/index"
+directory = "netlify/functions/server"
 node_bundler = "esbuild"
 
+[[redirects]]
+from = "/*"
+to = "/.netlify/functions/index"
+status = 200
