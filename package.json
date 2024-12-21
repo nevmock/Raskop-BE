@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development && nodemon netlify/functions/server/index.js",
+    "dev": "cross-env NODE_ENV=development && nodemon src/server.js",
     "prod": "cross-env NODE_ENV=production",
     "start": "cross-env NODE_ENV=development && node netlify/functions/server/index.js",
     "build": "npm i && npx prisma generate && npx prisma migrate deploy"
