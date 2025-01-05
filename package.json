@@ -12,9 +12,11 @@
   "scripts": {
     "start:dev": "cross-env NODE_ENV=development && nodemon src/server.js",
     "start:prod": "cross-env NODE_ENV=production",
-    "start": "cross-env NODE_ENV=development"
+    "start": "cross-env NODE_ENV=development",
+    "swagger": "node ./src/utils/swagger.js"
   },
   "dependencies": {
+    "@joi/date": "^2.1.1",
     "@prisma/client": "^5.22.0",
     "apicache": "^1.6.3",
     "axios": "^1.7.7",

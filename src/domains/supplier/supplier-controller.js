@@ -7,11 +7,15 @@ class SupplierController {
   async index(req, res) {
     let params = {};
 
+    // console.log(req.query);
+
     const {
         id,
-        page = 1,
-        limit = 10,
+        skip = 1,
+        length = 10,
         search,
+        advSearch = {},
+        order = [],
         sortBy = 'created_at',
         sortType = 'ASC',
         withDeleted = false,
@@ -19,49 +23,45 @@ class SupplierController {
         createdEnd
     } = req.query;
 
+    let parsedOrder = [];
+    if (Array.isArray(order)) {
+        parsedOrder = order.map(o => JSON.parse(o));
+    }
+
     if (id) {
         params = {
-            where: { id },
+            where: { 
+                id : id 
+            },
         };
 
         const supplier = await SupplierServices.getById(id, params);
         return successResponse(res, supplier);
     }
 
-    const filters = [
-        { 
-            name: { contains: search },
-        },
-        {
-            product_name: { contains: search }
-        },
-        {
-            address: { contains: search },
-        },
-        {
-            contact: { contains: search },
-        },
-    ];
-
-    // if (!isNaN(Number(search))) {
-    //     filters.push(
-    //         { price: { equals: Number(search) } },
-    //         { shipping_fee: { equals: Number(search) } }
-    //     );
-    // }
+    let filters = [];
     
-    // if (search.toLowerCase() === 'true' || search.toLowerCase() === 'false') {
-    //     filters.push(
-    //         { is_active: { equals: search.toLowerCase() === 'true' } }
-    //     );
-    // }
+    if (advSearch) {
+        var parsedAdvSearch = JSON.parse(advSearch);
+        for (const key in parsedAdvSearch) {
+            if (parsedAdvSearch[key]) {
+                filters.push({
+                    [key]: { contains: parsedAdvSearch[key] },
+                });
+            }
+        }
+    }
+    // console.log(filters);
+
 
     params.where = {
-        ...(search && {
-            OR: filters
+        ...(filters && {
+            OR: {
+                filters
+            }
         }),
         ...(createdStart && {
-            created_t: {
+            created_at: {
                 gte: new Date(createdStart),
             },
         }),
@@ -72,19 +72,21 @@ class SupplierController {
         }),
     };
 
-    if (withDeleted == 'false' || withDeleted == false) {
+    if (withDeleted === 'false' || withDeleted === false) {
         params.where.deleted_at = null;
     }
-
-    const skip = (page - 1) * limit;
-    const take = parseInt(limit);
-
-    params.orderBy = {
-        [snakeCase(sortBy)]: sortType.toLowerCase(),
-    };
+    if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
+        params.orderBy = parsedOrder.map(item => ({
+            [snakeCase(item.column)]: item.direction.toLowerCase(),
+        }));
+    } else {
+        params.orderBy = {
+            [snakeCase(sortBy)]: sortType.toLowerCase(),
+        };
+    }
 
     params.skip = skip;
-    params.take = take;
+    params.take = length;
 
     console.log(params);
 
