@@ -20,38 +20,14 @@ import reservasiRoutes from "./domains/reservasi/reservasi-routes.js";
 
 class ExpressApplication {
   app;
-  fileStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "public/images");
-    },
-    filename: (req, file, cb) => {
-      cb(null, new Date().getTime() + "-" + file.originalname);
-    },
-  });
-  fileFilter = (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/jpeg") {
-      cb(null, true);
-    } else {
-      cb(null, false);
-    }
-  };
-
+  fileStorage;
+  fileFilter;
   constructor(port) {
     this.app = express();
     this.port = port;
+
     this.app.use(express.json({ type: "application/json" }));
     this.app.use(express.urlencoded({ extended: false }));
-    this.app.use(
-      multer({
-        storage: this.fileStorage,
-        fileFilter: this.fileFilter,
-      }).fields([
-        {
-          name: "profile_picture",
-          maxCount: 1,
-        },
-      ])
-    );
     this.app.use(cors());
     //  __init__
     this.configureAssets();
@@ -63,7 +39,37 @@ class ExpressApplication {
       helmet(),
       // cors(),
     ]);
+
+
+    this.fileStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, "public/images");
+      },
+      filename: (req, file, cb) => {
+        cb(null, new Date().getTime() + "-" + file.originalname);
+      },
+    });
+    this.fileFilter = (req, file, cb) => {
+      if (file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/jpeg") {
+        cb(null, true);
+      } else {
+        cb(null, false);
+      }
+    };
+    this.app.use(
+        multer({
+          storage: this.fileStorage,
+          fileFilter: this.fileFilter,
+        }).fields([
+          {
+            name: "profile_picture",
+            maxCount: 1,
+          },
+        ])
+    );
   }
+
+
 
   setupMiddlewares(middlewaresArr) {
     middlewaresArr.forEach((middleware) => {
@@ -96,5 +102,6 @@ class ExpressApplication {
     });
   }
 }
+
 
 export default ExpressApplication;

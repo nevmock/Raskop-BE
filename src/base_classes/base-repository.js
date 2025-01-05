@@ -4,9 +4,9 @@ class BaseRepository {
     }
 
     async get(params = {}) {
-        const data = await this.model.findMany({
-            ...params,
-        })
+        const data = await this.model.findMany(params ? {
+            ...params
+        } : undefined)
 
         const total = await this.model.count({
             where: params.where
