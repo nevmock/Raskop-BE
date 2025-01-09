@@ -3,6 +3,7 @@ import BaseError from "../../base_classes/base-error.js";
 import statusCodes from "../../errors/status-codes.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import SupplierRepository from "./supplier-repository.js";
+import { snakeCase } from "change-case";
 
 class SupplierServices {
     constructor() {
@@ -10,13 +11,66 @@ class SupplierServices {
     }
     
     getAll = async (params = {}) => {
-      let suppliers = await this.SupplierRepository.get({
-        ...params,
-      });
+        let {
+            start = 1,
+            length = 10,
+            search = '',
+            advSearch,
+            order,
+        } = params;
 
-      suppliers = camelize(suppliers);
+        start = JSON.parse(start);
+        length = JSON.parse(length);
 
-      return suppliers;
+        advSearch = (advSearch) ? JSON.parse(advSearch) : null;
+        order = (order) ? JSON.parse(order) : null;
+
+        const where = {
+            ...(search && {
+                OR: [
+                    { name: { contains: search } },
+                    { contact: { contains: search } },
+                    { address: { contains: search } },
+                    { product_name: { contains: search } },
+                ],
+            }),
+            ...(advSearch && {
+                ...(advSearch.contact && { contact: { contains: advSearch.contact } }),
+                ...(advSearch.unit && { unit: advSearch.unit }),
+                ...(advSearch.price && { price: advSearch.price }),
+                ...(advSearch.name && { name: { contains: advSearch.name } }),
+                ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+                ...(advSearch.address && { address: { contains: advSearch.address } }),
+                ...(advSearch.shippingFee && { shipping_fee: advSearch.shippingFee }),
+                ...(advSearch.productName && { product_name: { contains: advSearch.productName } }),
+                ...(advSearch.type && { type: advSearch.type }),
+                ...(advSearch.id && { id: advSearch.id }),
+                ...((advSearch.startDate || advSearch.endDate) && {
+                    created_at: {
+                        ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
+                        ...(advSearch.endDate && { lte: new Date(advSearch.endDate) }),
+                    },
+                }),
+            }),
+        };
+
+        const orderBy = Array.isArray(order) ? order.map(o => ({
+            [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
+        })) : [];
+
+        const filters = {
+            where,
+            orderBy,
+            skip: start - 1,
+            take: length,
+        };
+
+        let suppliers = await this.SupplierRepository.get(filters);
+
+        suppliers = camelize(suppliers);
+
+        return suppliers;
     };
 
     getById = async (id, params = {}) => {
@@ -83,40 +137,6 @@ class SupplierServices {
 
         await this.SupplierRepository.deletePermanent(id);
     }
-  
-    // findById = async (supplierId) => {
-    //   const supplier = await this.SupplierRepository.getById(supplierId);
-  
-    //   return null;
-    // };
-  
-    // update = async (test_id, data) => {
-    //   // const test = await db.Test.findOne({
-    //   //   where: {
-    //   //     id: test_id,
-    //   //   },
-    //   // });
-    //   // if (!test) {
-    //   //   throw new BaseError(400, statusCodes.BAD_REQUEST.message, "Test Does not exist");
-    //   // }
-    //   // await test.update(data);
-    // };
-  
-    // delete = async (test_id) => {
-    //   // const test = await db.Test.findOne({
-    //   //   where: {
-    //   //     id: test_id,
-    //   //   },
-    //   // });
-    //   // if (!test) {
-    //   //   throw new BaseError(400, statusCodes.BAD_REQUEST.message, "Test Does not exist");
-    //   // }
-    //   // await db.Test.destroy({
-    //   //   where: {
-    //   //     id: test_id,
-    //   //   },
-    //   // });
-    // };
   }
   
   export default new SupplierServices();
