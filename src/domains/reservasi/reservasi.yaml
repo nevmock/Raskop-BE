@@ -1,96 +1,91 @@
 paths:
-  /supplier: 
+  /reservasi: 
     get:             
       tags:
-        - Supplier
-      summary: Get supplier datas
+        - Reservasi
+      summary: Get reservasi datas
       parameters:
-        - name: params 
+        - name: page
           in: query
-          description: Params for get supplier data
+          description: Pagination page
+          required: false
+          schema:
+            type: number
+            example: 1
+
+        - name: limit
+          in: query
+          description: Pagination Limit
+          required: false
+          schema:
+            type: number
+            example: 10
+
+        - name: search
+          in: query
+          description: Order by
           required: false
           schema:
             type: object
             properties:
-              start:
-                type: number
-                example: 1
-              length:
-                type: number
-                example: 10
-              search:
+              id:
                 type: string
-                example: "Supplier 1"
-              advSearch:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  name:
-                    type: string
-                  contact:
-                    type: string
-                  type:
-                    type: string
-                    enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                  productName:
-                    type: string
-                  price:
-                    type: number
-                    format: float
-                  shippingFee:
-                    type: number
-                    format: float
-                  address:
-                    type: string
-                  unit:
-                    type: string
-                    enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                  isActive:
-                    type: boolean
-                  startDate:
-                    type: string
-                    format: date-time
-                  endDate:
-                    type: string
-                    format: date-time
-                  withDeleted:
-                    type: boolean
-              order:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    column:
-                      type: string
-                      enum: [name, contact, type, productName, price, shippingFee, address, unit, isActive, createdAt, updatedAt, deletedAt]
-                    direction:
-                      type: string
-                      enum: [ASC, DESC]
-            example:
-              start: 1
-              length: 10
-              search: "Supplier 1"
-              advSearch:
-                id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                name: "Supplier 1"
-                contact: "09123456789"
-                type: "SYRUPE"
-                productName: "Syrup 1"
-                price: 100.00
-                shippingFee: 10.00
-                address: "Supplier 1 Address"
-                unit: "KG"
-                isActive: true
-                startDate: "2021-01-01T00:00:00.000Z"
-                endDate: "2021-12-31T23:59:59.999Z"
-                withDeleted: false
-              order:
-                - column: name
-                  direction: ASC
-                - column: contact
-                  direction: DESC
-
+              reserveBy:
+                type: string
+              community:
+                type: string
+              phoneNumber:
+                type: string
+              startDate:
+                type: string
+                format: date-time
+              endDate:
+                type: string
+                format: date-time
+              withDeleted:
+                type: boolean
+                  
+            style: form
+            explode: false
+            example: {
+                id: "13087215-815c-4b98-b383-e57e0157eb7c",
+                reserveBy: "Reservasi 1",
+                community: "Community 1",
+                phoneNumber: "09123456789",
+                startDate: "2021-01-01T00:00:00Z",
+                endDate: "2021-01-01T00:00:00Z",
+                withDeleted: true
+              }
+            
+              
+        - name: order
+          in: query
+          description: Order by
+          required: false
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                column:
+                  type: string
+                  enum: [reserveBy, community, phoneNumber, note, start, end, createdAt, updatedAt]
+                direction:
+                  type: string
+                  enum: [ASC, DESC]
+            style: form
+            explode: false
+            example: [
+              {
+                column: reserveBy,
+                direction: ASC, 
+              },
+              {
+                column: community,
+                direction: DESC, 
+              }
+            ]
+  
       responses: 
         200:
           description: Success response
@@ -202,7 +197,7 @@ paths:
                     type: NULL
         
         404:
-          description: No supplier data found
+          description: No reservasi data found
         500:
           description: Internal server error
       
@@ -210,8 +205,8 @@ paths:
 
     post:
       tags:
-        - Supplier
-      summary: Create or Update supplier data
+        - Reservasi
+      summary: Create or Update reservasi data
       parameters:
       requestBody:
         required: true
@@ -224,69 +219,64 @@ paths:
                   type: string
                   format: uuid
                   required: false
-                name:
+                reserveBy:
                   type: string
                   required: true
                   minLength: 3
                   maxLength: 150
-                contact:
+                community:
+                  type: string
+                  format: 
+                  required: true
+                  minLength: 3
+                  maxLength: 150
+                phoneNumber:
                   type: string
                   format: 
                   required: true
                   minLength: 3
                   maxLength: 12
-                type:
+                note:
                   type: string
-                  required: true
-                  enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                productName:
+                  format: 
+                  required: false
+                  minLength: 3
+                  maxLength: 1500
+                start:
                   type: string
+                  format: date-time
                   required: true
-                price:
-                  type: number
-                  format: float
-                  required: true
-                shippingFee:
-                  type: number
-                  format: float
-                  required: true
-                address:
+                end:
                   type: string
+                  format: date-time
                   required: true
-                unit:
-                  type: string
-                  required: true
-                  enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                isActive:
-                  type: boolean
-                  default: false
             examples:
-              Create Supplier:
+              Create Reservasi:
                 value:
-                  name: "Supplier 1"
+                  name: "Reservasi 1"
                   contact: "09123456789"
                   type: "SYRUPE"
                   productName: "Syrup 1"
                   price: 100.00
                   shippingFee: 10.00
-                  address: "Supplier 1 Address"
+                  address: "Reservasi 1 Address"
                   unit: "KG"
                   isActive: true
-              Update Supplier:
+              Update Reservasi:
                 value:
                   id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                  name: "Supplier 1"
+                  name: "Reservasi 1"
                   contact: "09123456789"
                   type: "SYRUPE"
                   productName: "Syrup 1"
                   price: 100.00
                   shippingFee: 10.00
-                  address: "Supplier 1 Address"
+                  address: "Reservasi 1 Address"
                   unit: "KG"
                   isActive: true
       responses: 
         200:
-          description: Supplier data updated
+          description: Reservasi data updated
           content:
             application/json:
               schema:
@@ -344,22 +334,22 @@ paths:
 
 
         201:
-          description: Supplier data created
+          description: Reservasi data created
         404:
-          description: No supplier data found
+          description: No reservasi data found
         500:
           description: Internal server error
 
 
     delete:
       tags:
-        - Supplier
-      summary: Delete supplier data
+        - Reservasi
+      summary: Delete reservasi data
 
       parameters:
         - name: id
           in: query
-          description: ID of the supplier
+          description: ID of the reservasi
           required: true
           schema:
             type: string
@@ -425,6 +415,6 @@ paths:
                     type: NULL
         
         404:
-          description: No supplier data found
+          description: No reservasi data found
         500:
           description: Internal server error
