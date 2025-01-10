@@ -32,7 +32,7 @@ const options = {
                 },
             },
             {
-                url: 'https://api.example.com/api/{version}',
+                url: 'https://raskop-be-production.up.railway.app/api/{version}',
                 description: 'Production server',
                 variables: {
                     version: {

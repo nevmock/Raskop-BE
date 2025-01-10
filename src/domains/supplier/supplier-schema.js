@@ -11,7 +11,7 @@ export const supplierSchema = Joi.object({
     }),
 
     contact: Joi.string().required().min(3).max(12).messages({
-        'string.min': 'Name must be min 3 character',
+        'string.min': 'Contact must be min 3 character',
         'string.max': 'Contact must be max 12 character',
     }),
 
