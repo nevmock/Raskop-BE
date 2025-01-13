@@ -10,3 +10,6 @@ prisma/migrations
 # APP
 #public/*
 .dist
+
+# Assets
+/public/images/menu

@@ -3,6 +3,7 @@ import BaseError from "../../base_classes/base-error.js";
 import statusCodes from "../../errors/status-codes.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import MenuRepository from "./menu-repository.js";
+import { deleteFileIfExists } from "../../utils/delete-file.js";
 
 class MenuServices {
   constructor() {
@@ -43,12 +44,16 @@ class MenuServices {
     return menu;
   };
 
-  update = async (id, data) => {
+  update = async (id, data, file) => {
     const isExist = await this.MenuRepository.getById(id);
     if (!isExist) {
       throw BaseError.notFound("Menu does not exist");
     }
     data = convertKeysToSnakeCase(data);
+
+    if (file && isExist.image_uri) {
+      deleteFileIfExists(isExist.image_uri);
+    }
 
     let menu = await this.MenuRepository.update(id, data);
 
@@ -78,6 +83,10 @@ class MenuServices {
 
     if (!isExist || isExist.deleted_at) {
       throw BaseError.notFound("Menu does not exist");
+    }
+
+    if (isExist.image_uri) {
+      deleteFileIfExists(isExist.image_uri);
     }
 
     await this.MenuRepository.deletePermanent(id);

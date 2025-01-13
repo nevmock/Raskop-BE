@@ -1,6 +1,11 @@
 import MenuServices from "./menu-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
 import { snakeCase } from "change-case";
+import { __dirname } from "../../utils/path.js";
+import path from "path";
+import fs from "fs";
+import { menuSchema } from "./menu-schema.js";
+import { deleteFileIfExists } from "../../utils/delete-file.js";
 
 class MenuController {
   async index(req, res) {
@@ -82,18 +87,42 @@ class MenuController {
     return successResponse(res, data, total);
   }
 
-  async createOrUpdate(req, res) {
-    let data = req.body;
+  async createOrUpdate(req, res, next) {
+    try {
+      let data = req.body;
 
-    if (data.id) {
-      const menu = await MenuServices.update(data.id, data);
+      const validated = menuSchema.validate(data, {
+        abortEarly: false,
+        errors: {
+          wrap: {
+            label: "",
+          },
+        },
+        convert: true,
+      });
 
-      return successResponse(res, menu);
+      if (validated.error) {
+        next(validated.error);
+      }
+
+      if (req.file) {
+        const imageUri = `/images/menu/${req.file.filename}`;
+        data.imageUri = imageUri;
+      }
+
+      if (data.id) {
+        const menu = await MenuServices.update(data.id, data, req.file);
+        return successResponse(res, menu);
+      }
+
+      const menu = await MenuServices.create(data);
+      return createdResponse(res, menu);
+    } catch (err) {
+      if (req.file) {
+        deleteFileIfExists(req.file.filename);
+      }
+      next(err);
     }
-
-    const menu = await MenuServices.create(data);
-
-    return createdResponse(res, menu);
   }
 
   async delete(req, res) {
