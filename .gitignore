@@ -9,7 +9,6 @@ prisma/migrations
 
 # APP
 #public/*
-.dist
 dist
 
 # Assets
