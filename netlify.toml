@@ -1,5 +1,5 @@
 [build]
-command = "npm i && npx prisma generate && npx prisma migrate deploy && npx babel src --out-dir dist --extensions \".js,.jsx\"" && node netlify/functions/server/index.js
+command = "npm i && npx prisma generate && npx prisma migrate deploy && npx babel src --out-dir dist --extensions \".js,.jsx\" && node netlify/functions/server/index.js"
 publish = "public"
 
 [functions]
