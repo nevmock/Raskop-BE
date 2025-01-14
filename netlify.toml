@@ -3,10 +3,10 @@ command = "npm i && npx prisma generate && npx prisma migrate deploy && npx babe
 publish = "public"
 
 [functions]
-directory = "netlify/functions"
+directory = "netlify/functions/server"
 node_bundler = "esbuild"
 
 [[redirects]]
 from = "/*"
-to = "/.netlify/functions/server"
+to = "/.netlify/functions/index"
 status = 200

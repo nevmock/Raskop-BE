@@ -17,4 +17,4 @@ process.on("SIGTERM", () => {
 });
 
 // const app = new ExpressApplication(PORT).app;
-export const handler = serverless(app);
+// export const handler = serverless(app);
