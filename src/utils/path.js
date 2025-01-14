@@ -1,10 +1,13 @@
 import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
+import { resolve, dirname } from "path";
 
-export const __dirname = (() => {
+// Fallback untuk runtime yang tidak mendukung import.meta.url
+export const __filename = (() => {
   try {
-    return dirname(fileURLToPath(import.meta.url));
+    return fileURLToPath(import.meta.url);
   } catch (error) {
-    return process.cwd();
+    return resolve(process.cwd(), "server.js");
   }
 })();
+
+export const __dirname = dirname(__filename);
