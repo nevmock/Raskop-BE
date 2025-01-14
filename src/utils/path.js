@@ -1,5 +1,10 @@
-import { fileURLToPath } from 'url';
-import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-export const __filename = fileURLToPath(import.meta.url);
-export const __dirname = dirname(__filename);
+export const __dirname = (() => {
+  try {
+    return dirname(fileURLToPath(import.meta.url));
+  } catch (error) {
+    return process.cwd();
+  }
+})();
