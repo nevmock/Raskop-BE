@@ -1,12 +1,12 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { __dirname } from "../utils/path.js";
+import { __dirname, __filename } from "../utils/path.js";
 
 export const createUploadMiddleware = (folder) => {
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      const dir = path.join(__dirname, `../../public/images/${folder}`);
+      const dir = path.join(__filename, `public/images/${folder}`);
 
       fs.mkdir(dir, { recursive: true }, (err) => {
         if (err) {

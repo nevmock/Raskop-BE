@@ -74,7 +74,7 @@ class ExpressApplication {
     this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
   configureAssets() {
-    this.app.use(express.static(path.join(__dirname, "../../public")));
+    this.app.use(express.static(path.join(__filename, "public")));
   }
   setupLibrary(libraries) {
     libraries.forEach(library => {

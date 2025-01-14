@@ -86,7 +86,7 @@ class ExpressApplication {
   }
 
   configureAssets() {
-    this.app.use(express.static(path.join(__dirname, "../../public")));
+    this.app.use(express.static(path.join(__filename, "public")));
   }
 
   setupLibrary(libraries) {
