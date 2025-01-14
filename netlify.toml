@@ -1,5 +1,5 @@
 [build]
-command = "npm i && npx prisma generate && npx babel src --out-dir dist --extensions \".js,.jsx\""
+command = "npm i && npx prisma generate && npx prisma migrate deploy && npx babel src --out-dir dist --extensions \".js,.jsx\""
 publish = "public"
 
 [functions]
@@ -8,5 +8,5 @@ node_bundler = "esbuild"
 
 [[redirects]]
 from = "/*"
-to = "/.netlify/functions/index"
+to = "/.netlify/functions/server"
 status = 200
