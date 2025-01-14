@@ -4,7 +4,7 @@ function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i 
 function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (e.includes(n)) continue; t[n] = r[n]; } return t; }
 import db from "../../utils/prisma.js";
 import BaseRepository from "../../base_classes/base-repository.js";
-class SupplierRepository extends BaseRepository {
+class ReservasiRepository extends BaseRepository {
   constructor() {
     super({
       model: db.supplier
@@ -15,8 +15,6 @@ class SupplierRepository extends BaseRepository {
         deleted_at
       } = data,
       filteredData = _objectWithoutProperties(data, _excluded);
-    this.toFloat(filteredData, ['price', 'shipping_fee']);
-    this.toBoolean(filteredData, ['is_active']);
     return await super.create(filteredData);
   }
   async update(id, data) {
@@ -24,9 +22,7 @@ class SupplierRepository extends BaseRepository {
         deleted_at
       } = data,
       filteredData = _objectWithoutProperties(data, _excluded2);
-    this.toFloat(filteredData, ['price', 'shipping_fee']);
-    this.toBoolean(filteredData, ['is_active']);
     return await super.update(id, filteredData);
   }
 }
-export default new SupplierRepository();
+export default new ReservasiRepository();

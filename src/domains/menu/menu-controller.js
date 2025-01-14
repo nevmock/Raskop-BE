@@ -2,8 +2,6 @@ import MenuServices from "./menu-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
 import { snakeCase } from "change-case";
 import { __dirname } from "../../utils/path.js";
-import path from "path";
-import fs from "fs";
 import { menuSchema } from "./menu-schema.js";
 import { deleteFileIfExists } from "../../utils/delete-file.js";
 

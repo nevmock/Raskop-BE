@@ -1,14 +1,18 @@
-"use strict";
+import ExpressApplication from "./app.js";
+import logger from "./utils/logger.js";
+import serverless from "serverless-http";
+const PORT = process.env.PORT || 3000;
 
-var _app = _interopRequireDefault(require("./app.js"));
-var _logger = _interopRequireDefault(require("./utils/logger.js"));
-function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
-var PORT = process.env.PORT || 3000;
-var app = new _app["default"](PORT);
-var server = app.start();
-process.on("SIGTERM", function () {
-  _logger["default"].warn('SIGTERM RECIEVED!');
-  server.close(function () {
-    _logger["default"].warn('Process Terminated!');
+// if (process.env.IS_NETLIFY !== "true") {
+// }
+const app = new ExpressApplication(PORT);
+const server = app.start();
+process.on("SIGTERM", () => {
+  logger.warn("SIGTERM RECEIVED!");
+  server.close(() => {
+    logger.warn("Process Terminated!");
   });
 });
+
+// const app = new ExpressApplication(PORT).app;
+// export const handler = serverless(app);
