@@ -1,5 +1,6 @@
-import { fileURLToPath } from 'url';
-import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { resolve, dirname } from "path";
 
-export const __filename = fileURLToPath(import.meta.url);
+// Fallback untuk runtime yang tidak mendukung import.meta.url
+export const __filename = process.cwd();
 export const __dirname = dirname(__filename);

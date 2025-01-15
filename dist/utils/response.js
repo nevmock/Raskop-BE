@@ -1,24 +1,15 @@
-"use strict";
+import statusCodes from "../errors/status-codes.js";
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.createdResponse = createdResponse;
-exports.successResponse = successResponse;
-var _statusCodes = _interopRequireDefault(require("../errors/status-codes.js"));
-function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
 /**
  * Success response for successful operations
  * @param {any} data - The data to return in the response
  * @param {string} message - Success message
  * @returns {object} - Formatted success response
  */
-function successResponse(res) {
-  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "Request successful";
-  var recordsTotal = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-  return res.status(_statusCodes["default"].OK.code).json({
-    code: _statusCodes["default"].OK.code,
-    status: _statusCodes["default"].OK.message,
+export function successResponse(res, data = "Request successful", recordsTotal = null) {
+  return res.status(statusCodes.OK.code).json({
+    code: statusCodes.OK.code,
+    status: statusCodes.OK.message,
     recordsTotal: recordsTotal == null ? Array.isArray(data) ? data.length : 1 : recordsTotal,
     data: data,
     errors: null
@@ -31,12 +22,10 @@ function successResponse(res) {
  * @param {string} message - Success message
  * @returns {object} - Formatted created response
  */
-function createdResponse(res) {
-  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "Resource created successfully";
-  var recordsTotal = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-  return res.status(_statusCodes["default"].CREATED.code).json({
-    code: _statusCodes["default"].CREATED.code,
-    status: _statusCodes["default"].CREATED.message,
+export function createdResponse(res, data = "Resource created successfully", recordsTotal = null) {
+  return res.status(statusCodes.CREATED.code).json({
+    code: statusCodes.CREATED.code,
+    status: statusCodes.CREATED.message,
     recordsTotal: recordsTotal == null ? Array.isArray(data) ? data.length : 1 : recordsTotal,
     data: data,
     errors: null
