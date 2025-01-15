@@ -1,9 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports["default"] = void 0;
-var _client = require("@prisma/client");
-var db = new _client.PrismaClient();
-var _default = exports["default"] = db;
+import { PrismaClient } from "@prisma/client";
+const db = new PrismaClient();
+export default db;

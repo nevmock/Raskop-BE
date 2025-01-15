@@ -40,7 +40,6 @@ class ExpressApplication {
       // cors(),
     ]);
 
-
     this.fileStorage = multer.diskStorage({
       destination: (req, file, cb) => {
         cb(null, "public/images");
@@ -57,19 +56,21 @@ class ExpressApplication {
       }
     };
     this.app.use(
-        multer({
-          storage: this.fileStorage,
-          fileFilter: this.fileFilter,
-        }).fields([
-          {
-            name: "profile_picture",
-            maxCount: 1,
-          },
-        ])
+      multer({
+        storage: this.fileStorage,
+        fileFilter: this.fileFilter,
+      }).fields([
+        {
+          name: "profile_picture",
+          maxCount: 1,
+        },
+        {
+          name: "image",
+          maxCount: 1,
+        },
+      ])
     );
   }
-
-
 
   setupMiddlewares(middlewaresArr) {
     middlewaresArr.forEach((middleware) => {
@@ -85,7 +86,7 @@ class ExpressApplication {
   }
 
   configureAssets() {
-    this.app.use(express.static(path.join(__dirname, "../public")));
+    this.app.use(express.static(path.join(__filename, "public")));
   }
 
   setupLibrary(libraries) {
@@ -102,6 +103,5 @@ class ExpressApplication {
     });
   }
 }
-
 
 export default ExpressApplication;

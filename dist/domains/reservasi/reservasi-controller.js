@@ -3,13 +3,11 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-import MenuServices from "./menu-services.js";
+import ReservasiServices from "./reservasi-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
+import statusCodes from "../../errors/status-codes.js";
 import { snakeCase } from "change-case";
-import { __dirname } from "../../utils/path.js";
-import { menuSchema } from "./menu-schema.js";
-import { deleteFileIfExists } from "../../utils/delete-file.js";
-class MenuController {
+class SupplierController {
   async index(req, res) {
     let params = {};
     const {
@@ -17,8 +15,8 @@ class MenuController {
       page = 1,
       limit = 10,
       search,
-      sortBy = "created_at",
-      sortType = "ASC",
+      sortBy = 'created_at',
+      sortType = 'ASC',
       withDeleted = false,
       createdStart,
       createdEnd
@@ -29,40 +27,26 @@ class MenuController {
           id
         }
       };
-      const supplier = await MenuServices.getById(id, params);
-      return successResponse(res, supplier);
+      const reservasi = await ReservasiServices.getById(id, params);
+      return successResponse(res, reservasi);
     }
     const filters = [{
-      name: {
+      reserveBy: {
         contains: search
       }
     }, {
-      product_name: {
+      community: {
         contains: search
       }
     }, {
-      address: {
+      phoneNumber: {
         contains: search
       }
     }, {
-      contact: {
+      note: {
         contains: search
       }
     }];
-
-    // if (!isNaN(Number(search))) {
-    //     filters.push(
-    //         { price: { equals: Number(search) } },
-    //         { shipping_fee: { equals: Number(search) } }
-    //     );
-    // }
-
-    // if (search.toLowerCase() === 'true' || search.toLowerCase() === 'false') {
-    //     filters.push(
-    //         { is_active: { equals: search.toLowerCase() === 'true' } }
-    //     );
-    // }
-
     params.where = _objectSpread(_objectSpread(_objectSpread({}, search && {
       OR: filters
     }), createdStart && {
@@ -74,7 +58,7 @@ class MenuController {
         lte: new Date(createdEnd)
       }
     });
-    if (withDeleted == "false" || withDeleted == false) {
+    if (withDeleted == 'false' || withDeleted == false) {
       params.where.deleted_at = null;
     }
     const skip = (page - 1) * limit;
@@ -88,40 +72,17 @@ class MenuController {
     const {
       data,
       total
-    } = await MenuServices.getAll(params);
+    } = await ReservasiServices.getAll(params);
     return successResponse(res, data, total);
   }
-  async createOrUpdate(req, res, next) {
-    try {
-      let data = req.body;
-      const validated = menuSchema.validate(data, {
-        abortEarly: false,
-        errors: {
-          wrap: {
-            label: ""
-          }
-        },
-        convert: true
-      });
-      if (validated.error) {
-        next(validated.error);
-      }
-      if (req.file) {
-        const imageUri = `/images/menu/${req.file.filename}`;
-        data.imageUri = imageUri;
-      }
-      if (data.id) {
-        const menu = await MenuServices.update(data.id, data, req.file);
-        return successResponse(res, menu);
-      }
-      const menu = await MenuServices.create(data);
-      return createdResponse(res, menu);
-    } catch (err) {
-      if (req.file) {
-        deleteFileIfExists(req.file.filename);
-      }
-      next(err);
+  async createOrUpdate(req, res) {
+    let data = req.body;
+    if (data.id) {
+      const reservasi = await ReservasiServices.update(data.id, data);
+      return successResponse(res, reservasi);
     }
+    const reservasi = await ReservasiServices.create(data);
+    return createdResponse(res, reservasi);
   }
   async delete(req, res) {
     const {
@@ -129,11 +90,13 @@ class MenuController {
       permanent
     } = req.query;
     if (permanent === true || permanent === "true") {
-      await MenuServices.deletePermanent(id);
-      return successResponse(res, "Menu deleted permanently");
+      console.log("coming here");
+      await ReservasiServices.deletePermanent(id);
+      return successResponse(res, "Reservasi deleted permanently");
     }
-    await MenuServices.delete(id);
-    return successResponse(res, "Menu deleted successfully");
+    // console.log("coming here")
+    await ReservasiServices.delete(id);
+    return successResponse(res, "Reservasi deleted successfully");
   }
 }
-export default new MenuController();
+export default new SupplierController();
