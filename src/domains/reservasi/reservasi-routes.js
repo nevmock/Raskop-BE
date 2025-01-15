@@ -5,7 +5,6 @@ import { reservasiSchema } from './reservasi-schema.js';
 import validateCredentials from '../../middlewares/validate-credentials-middleware.js';
 
 class ReservasiRoutes extends BaseRoutes {
-
     routes() {
         this.router.get('/', [
             tryCatch(ReservasiController.index)

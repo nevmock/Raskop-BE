@@ -34,4 +34,16 @@ export const reservasiSchema = Joi.object({
     end: Joi.date().format('YYYY-MM-DD HH:mm').greater(Joi.ref('start')).required().messages({
         'date.base': 'End must be date',
     }),
+
+    tables: Joi.array().items(Joi.string().guid()).required().min(1).messages({
+        'array.min': 'Tables must be min 1 item',
+    }),
+
+    menus: Joi.array().items(Joi.object({
+        id: Joi.string().guid().required(),
+        quantity: Joi.number().integer().min(1).required(),
+        note: Joi.string().optional().max(1500),
+    })).required().min(1).messages({
+        'array.min': 'Menus must be min 1 item',
+    }),
 });

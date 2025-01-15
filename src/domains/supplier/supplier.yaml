@@ -118,7 +118,6 @@ paths:
                         id:
                           type: string
                           format: uuid
-                          
                         name:
                           type: string
                           minLength: 3
@@ -145,69 +144,20 @@ paths:
                           enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
                         isActive:
                           type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
                   errors: 
                     type: NULL
-        200 with ID:
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                        
-                      name:
-                        type: string
-                        minLength: 3
-                        maxLength: 150
-                      contact:
-                        type: string
-                        minLength: 3
-                        maxLength: 12
-                      type:
-                        type: string
-                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                      productName:
-                        type: string
-                      price:
-                        type: number
-                        format: float
-                      shippingFee:
-                        type: number
-                        format: float
-                      address:
-                        type: string
-                      unit:
-                        type: string
-                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                      isActive:
-                        type: boolean
-                  errors: 
-                    type: NULL
-        
-        404:
-          description: No supplier data found
         500:
           description: Internal server error
       
-      
-
     post:
       tags:
         - Supplier
@@ -349,7 +299,6 @@ paths:
           description: No supplier data found
         500:
           description: Internal server error
-
 
     delete:
       tags:
