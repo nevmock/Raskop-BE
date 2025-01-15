@@ -1,10 +1,10 @@
 import db from "../../utils/prisma.js"
 import BaseRepository from "../../base_classes/base-repository.js";
 
-class ReservasiRepository extends BaseRepository {
+class TableRepository extends BaseRepository {
     constructor() {
         super({ 
-            model: db.reservasi,
+            model: db.table,
         });
     }
 
@@ -21,4 +21,4 @@ class ReservasiRepository extends BaseRepository {
     }
 }
 
-export default new ReservasiRepository();
+export default new TableRepository();

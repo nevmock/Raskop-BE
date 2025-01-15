@@ -1,7 +1,5 @@
 import SupplierServices from "./supplier-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
-import statusCodes from "../../errors/status-codes.js";
-import { snakeCase } from "change-case";
 
 class SupplierController {
   async index(req, res) {
