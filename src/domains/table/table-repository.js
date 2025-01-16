@@ -19,6 +19,14 @@ class TableRepository extends BaseRepository {
 
         return await super.update(id, filteredData);
     }
+
+    async getByNoTable(no_table) {
+        return await this.model.findUnique({
+            where: {
+                no_table
+            }
+        });
+    }
 }
 
 export default new TableRepository();

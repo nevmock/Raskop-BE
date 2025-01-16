@@ -8,42 +8,112 @@ class TableServices {
         this.TableRepository = TableRepository;
     }
 
+    getAll = async (params = {}) => {
+        let {
+            start = 1,
+            length = 10,
+            search = '',
+            advSearch,
+            order,
+        } = params;
+
+        start = JSON.parse(start);
+        length = JSON.parse(length);
+
+        advSearch = (advSearch) ? JSON.parse(advSearch) : null;
+        order = (order) ? JSON.parse(order) : null;
+
+        const where = {
+            ...(search && {
+                OR: [
+                    { barcode: { contains: search } },
+                    { no_table: { contains: search } },
+                    { description: { contains: search } },
+                ],
+            }),
+            ...(advSearch && {
+                ...(advSearch.minCapacity && { min_capacity: advSearch.minCapacity }),
+                ...(advSearch.maxCapacity && { max_capacity: advSearch.maxCapacity }),
+                ...(advSearch.description && { description: { contains: advSearch.description } }),
+                ...(advSearch.noTable && { no_table: { contains: advSearch.noTable } }),
+                ...(advSearch.isOutdoor !== undefined && { is_outdoor: advSearch.isOutdoor }),
+                ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+                ...((advSearch.startDate || advSearch.endDate) && {
+                    created_at: {
+                        ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
+                        ...(advSearch.endDate && { lte: new Date(advSearch.endDate) }),
+                    },
+                }),
+            }),
+        };
+
+        const orderBy = Array.isArray(order) ? order.map(o => ({
+            [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
+        })) : [];
+
+        const filters = {
+            where,
+            orderBy,
+            skip: start - 1,
+            take: length,
+        };
+
+        let tables = await this.TableRepository.get(filters);
+
+        tables = camelize(tables);
+
+        return tables;
+    };
+
     getById = async (id, params = {}) => {
-        let Table = await this.TableRepository.getById(id, {
+        let table = await this.TableRepository.getById(id, {
             ...params,
         });
 
-        if (!Table) {
+        if (!table) {
             throw BaseError.notFound("Table does not exist");
         }
     
-        Table = camelize(Table);
+        table = camelize(table);
     
-        return Table;
+        return table;
     };
+
+    getByNoTable = async (noTable) => {
+        let table = await this.TableRepository.getByNoTable(noTable);
+
+        table = camelize(table);
+
+        return table;
+    }
 
     create = async (data) => {
         data = convertKeysToSnakeCase(data);
 
-        let Table = await this.TableRepository.create(data);
+        let table = await this.TableRepository.create(data);
 
-        Table = camelize(Table);
+        table = camelize(table);
 
-        return Table;
+        return table;
     }
 
-    update = async (id, data) => {
+    update = async (id, data, file) => {
         const isExist = await this.TableRepository.getById(id);
         if (!isExist) {
             throw BaseError.notFound("Table does not exist");
         }
         data = convertKeysToSnakeCase(data)
 
-        let Table = await this.TableRepository.update(id, data);
+        if (file && isExist.image_uri) {
+            deleteFileIfExists(isExist.image_uri);
+        }
 
-        Table = camelize(Table);
+        let table = await this.TableRepository.update(id, data);
 
-        return Table;
+        table = camelize(table);
+
+        return table;
     }
 
     delete = async (id) => {
@@ -65,8 +135,16 @@ class TableServices {
     deletePermanent = async (id) => {
         const isExist = await this.TableRepository.getById(id);
 
-        if (!isExist || isExist.deleted_at) {
+        if (!isExist) {
             throw BaseError.notFound("Table does not exist");
+        }
+
+        if (!isExist.deleted_at) {
+            throw BaseError.badRequest("Table is not deleted yet");
+        }
+
+        if (isExist.image_uri) {
+            deleteFileIfExists(isExist.image_uri);
         }
 
         await this.TableRepository.deletePermanent(id);
