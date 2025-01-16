@@ -4,6 +4,15 @@ class BaseRepository {
     }
 
     async get(params = {}) {
+        // const [data, total] = await this.model.$transaction([
+        //     this.model.findMany(params ? {
+        //         ...params
+        //     } : undefined),
+        //     this.model.count({
+        //         where: params.where
+        //     })
+        // ]);
+
         const data = await this.model.findMany(params ? {
             ...params
         } : undefined)
@@ -41,7 +50,7 @@ class BaseRepository {
             data: data,
         });
     }
-    
+
     async delete(id) {
         return this.model.update({
             where: {
@@ -78,8 +87,6 @@ class BaseRepository {
     //         data[key] = parseInt(data[key]);
     //     });
     // }
-
-    
 }
 
 export default BaseRepository;
