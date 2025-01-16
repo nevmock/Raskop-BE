@@ -81,9 +81,13 @@ class MenuServices {
   deletePermanent = async (id) => {
     const isExist = await this.MenuRepository.getById(id);
 
-    if (!isExist || isExist.deleted_at) {
+    if (!isExist) {
       throw BaseError.notFound("Menu does not exist");
     }
+
+    if (!isExist.deleted_at) {
+      throw BaseError.badRequest("Menu is not deleted yet");
+  }
 
     if (isExist.image_uri) {
       deleteFileIfExists(isExist.image_uri);
