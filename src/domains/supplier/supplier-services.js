@@ -129,8 +129,12 @@ class SupplierServices {
     deletePermanent = async (id) => {
         const isExist = await this.SupplierRepository.getById(id);
 
-        if (!isExist || isExist.deleted_at) {
+        if (!isExist) {
             throw BaseError.notFound("Supplier does not exist");
+        }
+
+        if (!isExist.deleted_at) {
+            throw BaseError.badRequest("Supplier is not deleted yet");
         }
 
         await this.SupplierRepository.deletePermanent(id);

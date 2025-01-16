@@ -29,12 +29,12 @@ class SupplierController {
     const { id, permanent } = req.query;
 
     if (permanent === true || permanent === "true") {
-      console.log("coming here")
+
       await SupplierServices.deletePermanent(id);
 
       return successResponse(res, "Supplier deleted permanently");
     }
-    // console.log("coming here")
+
     await SupplierServices.delete(id);
 
     return successResponse(res, "Supplier deleted successfully");
