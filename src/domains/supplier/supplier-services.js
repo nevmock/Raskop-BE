@@ -1,6 +1,5 @@
 import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
-import statusCodes from "../../errors/status-codes.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import SupplierRepository from "./supplier-repository.js";
 import { snakeCase } from "change-case";
@@ -128,7 +127,6 @@ class SupplierServices {
     }
 
     deletePermanent = async (id) => {
-        
         const isExist = await this.SupplierRepository.getById(id);
 
         if (!isExist || isExist.deleted_at) {

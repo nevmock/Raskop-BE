@@ -5,87 +5,93 @@ paths:
         - Reservasi
       summary: Get reservasi datas
       parameters:
-        - name: page
+        - name: params
           in: query
-          description: Pagination page
-          required: false
-          schema:
-            type: number
-            example: 1
-
-        - name: limit
-          in: query
-          description: Pagination Limit
-          required: false
-          schema:
-            type: number
-            example: 10
-
-        - name: search
-          in: query
-          description: Order by
+          description: Params for get Reservasi data
           required: false
           schema:
             type: object
             properties:
-              id:
+              start:
+                type: number
+                example: 1
+              length:
+                type: number
+                example: 10
+              search:
                 type: string
-              reserveBy:
-                type: string
-              community:
-                type: string
-              phoneNumber:
-                type: string
-              startDate:
-                type: string
-                format: date-time
-              endDate:
-                type: string
-                format: date-time
-              withDeleted:
-                type: boolean
-                  
-            style: form
-            explode: false
-            example: {
-                id: "13087215-815c-4b98-b383-e57e0157eb7c",
-                reserveBy: "Reservasi 1",
-                community: "Community 1",
-                phoneNumber: "09123456789",
-                startDate: "2021-01-01T00:00:00Z",
-                endDate: "2021-01-01T00:00:00Z",
+                example: "Reservasi 1"
+              advSearch:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  reserveBy:
+                    type: string
+                  community:
+                    type: string
+                  phoneNumber:
+                    type: string
+                  note:
+                    type: string
+                  start:
+                    type: string
+                    format: date-time
+                  end:
+                    type: string
+                    format: date-time
+                  startDate:
+                    type: string
+                    format: date-time
+                  endDate:
+                    type: string
+                    format: date-time
+                  withDeleted:
+                    type: boolean
+              order:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column:
+                      type: string
+                      enum: [reserveBy, community, phone_number, note, start, end, createdAt, updatedAt]
+                    direction:
+                      type: string
+                      enum: [ASC, DESC]
+            example:
+              start: 1
+              length: 10
+              search: "Reservasi 1"
+              advSearch:
+                id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                reserveBy: "Example"
+                community: "Community 1"
+                phoneNumber: "082333232322"
+                note: "Tolong diantar ke rumah"
+                start: "2021-01-01T00:00:00.000Z"
+                end: "2021-01-01T00:00:00.000Z"
+                startDate: "2021-01-01T00:00:00.000Z"
+                endDate: "2021-12-31T23:59:59.999Z"
                 withDeleted: true
-              }
-            
-              
-        - name: order
-          in: query
-          description: Order by
-          required: false
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                column:
-                  type: string
-                  enum: [reserveBy, community, phoneNumber, note, start, end, createdAt, updatedAt]
-                direction:
-                  type: string
-                  enum: [ASC, DESC]
-            style: form
-            explode: false
-            example: [
-              {
-                column: reserveBy,
-                direction: ASC, 
-              },
-              {
-                column: community,
-                direction: DESC, 
-              }
-            ]
-  
+              order:
+                - column: reserveBy
+                  direction: ASC
+                - column: community
+                  direction: DESC
+                - column: phone_number
+                  direction: ASC
+                - column: note
+                  direction: DESC
+                - column: start
+                  direction: ASC
+                - column: end
+                  direction: DESC
+                - column: createdAt
+                  direction: ASC
+                - column: updatedAt
+                  direction: DESC
+
       responses: 
         200:
           description: Success response
@@ -113,96 +119,39 @@ paths:
                         id:
                           type: string
                           format: uuid
-                          
-                        name:
+                        reserveBy:
                           type: string
                           minLength: 3
                           maxLength: 150
-                        contact:
+                        community:
+                          type: string
+                          minLength: 3
+                          maxLength: 150
+                        phoneNumber:
                           type: string
                           minLength: 3
                           maxLength: 12
-                        type:
+                        note:
                           type: string
-                          enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                        productName:
+                        start:
                           type: string
-                        price:
-                          type: number
-                          format: float
-                        shippingFee:
-                          type: number
-                          format: float
-                        address:
+                          example: "2021-01-01 12:30"
+                        end:
                           type: string
-                        unit:
+                          example: "2021-01-01 12:30"
+                        createdAt:
                           type: string
-                          enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                        isActive:
-                          type: boolean
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
                   errors: 
                     type: NULL
-        200 with ID:
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                        
-                      name:
-                        type: string
-                        minLength: 3
-                        maxLength: 150
-                      contact:
-                        type: string
-                        minLength: 3
-                        maxLength: 12
-                      type:
-                        type: string
-                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                      productName:
-                        type: string
-                      price:
-                        type: number
-                        format: float
-                      shippingFee:
-                        type: number
-                        format: float
-                      address:
-                        type: string
-                      unit:
-                        type: string
-                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                      isActive:
-                        type: boolean
-                  errors: 
-                    type: NULL
-        
-        404:
-          description: No reservasi data found
         500:
           description: Internal server error
-      
-      
-
     post:
       tags:
         - Reservasi
@@ -244,36 +193,59 @@ paths:
                   maxLength: 1500
                 start:
                   type: string
-                  format: date-time
                   required: true
                 end:
                   type: string
-                  format: date-time
                   required: true
+                tables:
+                  type: array
+                  items:
+                    type: number
+                    format: guid
+                menus:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: guid
+                    quantity:
+                      type: number
+                      format: int64
+                    note:
+                      type: string
+                      format: 
+                        maxLength: 1500
+                  
             examples:
               Create Reservasi:
                 value:
-                  name: "Reservasi 1"
-                  contact: "09123456789"
-                  type: "SYRUPE"
-                  productName: "Syrup 1"
-                  price: 100.00
-                  shippingFee: 10.00
-                  address: "Reservasi 1 Address"
-                  unit: "KG"
-                  isActive: true
+                  reserveBy: "Example"
+                  community: "Community 1"
+                  phoneNumber: "082333232322"
+                  note: "Tolong diantar ke rumah"
+                  start: "2021-01-01 12:30"
+                  end: "2021-01-01 12:30"
+                  tables: ["13087215-815c-4b98-b383-e57e0157eb7c", "13087215-815c-64543-b383-e57e0157eb7c", "13087215-815c-4b98-b383-e571287932eb7c"]
+                  menus: [
+                    {
+                      id: "13087215-815c-4b98-b383-e57e0157eb7c",
+                      quantity: 2,
+                      note: "Tolong tambah pedas"
+                    },
+                    {
+                      id: "13087215-815c-4b98-b383-e57e0157eb7c",
+                      quantity: 1
+                    }
+                  ]
               Update Reservasi:
                 value:
                   id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                  name: "Reservasi 1"
-                  contact: "09123456789"
-                  type: "SYRUPE"
-                  productName: "Syrup 1"
-                  price: 100.00
-                  shippingFee: 10.00
-                  address: "Reservasi 1 Address"
-                  unit: "KG"
-                  isActive: true
+                  reserveBy: "Example"
+                  community: "Community 1"
+                  phoneNumber: "082333232322"
+                  note: "Tolong diantar ke rumah"
+                  start: "2021-01-01T00:00:00.000Z"
+                  end: "2021-01-01T00:00:00.000Z"
       responses: 
         200:
           description: Reservasi data updated
@@ -301,37 +273,37 @@ paths:
                         id:
                           type: string
                           format: uuid
-                          
-                        name:
+                        reserveBy:
                           type: string
                           minLength: 3
                           maxLength: 150
-                        contact:
+                        community:
                           type: string
                           minLength: 3
                           maxLength: 12
-                        type:
+                        phoneNumber:
                           type: string
-                          enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                        productName:
+                          minLength: 3
+                          maxLength: 12
+                        note:
                           type: string
-                        price:
-                          type: number
-                          format: float
-                        shippingFee:
-                          type: number
-                          format: float
-                        address:
+                        start:
                           type: string
-                        unit:
+                          format: date-time
+                        end:
                           type: string
-                          enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                        isActive:
-                          type: boolean
+                          format: date-time
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
                   errors: 
                     type: NULL
-
-
 
         201:
           description: Reservasi data created
@@ -361,59 +333,8 @@ paths:
             type: boolean
 
       responses: 
-        200 with ID:
+        200:
           description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                      name:
-                        type: string
-                        minLength: 3
-                        maxLength: 150
-                      contact:
-                        type: string
-                        minLength: 3
-                        maxLength: 12
-                      type:
-                        type: string
-                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                      productName:
-                        type: string
-                      price:
-                        type: number
-                        format: float
-                      shippingFee:
-                        type: number
-                        format: float
-                      address:
-                        type: string
-                      unit:
-                        type: string
-                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-                      isActive:
-                        type: boolean
-                  errors: 
-                    type: NULL
-        
         404:
           description: No reservasi data found
         500:
