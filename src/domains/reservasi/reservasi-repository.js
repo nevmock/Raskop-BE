@@ -4,7 +4,7 @@ import BaseRepository from "../../base_classes/base-repository.js";
 class ReservasiRepository extends BaseRepository {
     constructor() {
         super({ 
-            model: db.supplier,
+            model: db.reservasi,
         });
     }
 

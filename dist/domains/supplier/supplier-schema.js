@@ -1,45 +1,38 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.supplierSchema = void 0;
-var _joi = _interopRequireDefault(require("joi"));
-function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
-var supplierSchema = exports.supplierSchema = _joi["default"].object({
-  id: _joi["default"].string().guid().optional().messages({
+import Joi from 'joi';
+export const supplierSchema = Joi.object({
+  id: Joi.string().guid().optional().messages({
     'string.base': 'Id must be string',
     'string.guid': 'Id must be guid'
   }),
-  name: _joi["default"].string().required().min(3).max(150).messages({
+  name: Joi.string().required().min(3).max(150).messages({
     'string.min': 'Name must be min 3 character',
     'string.max': 'Name must be max 150 character'
   }),
-  contact: _joi["default"].string().required().min(3).max(12).messages({
-    'string.min': 'Name must be min 3 character',
+  contact: Joi.string().required().min(3).max(12).messages({
+    'string.min': 'Contact must be min 3 character',
     'string.max': 'Contact must be max 12 character'
   }),
-  type: _joi["default"].string().required().valid('SYRUPE', 'BEANS', 'POWDER', 'CUP', 'SNACK', 'OTHER INGREDIENT').required().messages({
+  type: Joi.string().required().valid('SYRUPE', 'BEANS', 'POWDER', 'CUP', 'SNACK', 'OTHER INGREDIENT').required().messages({
     'any.only': 'Type must be SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER INGREDIENT'
   }),
-  productName: _joi["default"].string().required().max(150).messages({
+  productName: Joi.string().required().max(150).messages({
     'string.max': 'Product Name must be max 150 character'
   }),
-  price: _joi["default"].number().min(0).required().messages({
+  price: Joi.number().min(0).required().messages({
     'number.base': 'Price must be number',
     'number.min': 'Price must be greater than 0'
   }),
-  shippingFee: _joi["default"].number().min(0).required().messages({
+  shippingFee: Joi.number().min(0).required().messages({
     'number.base': 'Shipping Fee must be number',
     'number.min': 'Shipping Fee must be greater than 0'
   }),
-  address: _joi["default"].string().required().max(150).messages({
+  address: Joi.string().required().max(150).messages({
     'string.max': 'Address must be max 150 character'
   }),
-  unit: _joi["default"].string().required().valid('KG', 'LITER', 'GRAM', 'ML', 'PIECE', 'BOX', 'BALL').required().messages({
+  unit: Joi.string().required().valid('KG', 'LITER', 'GRAM', 'ML', 'PIECE', 'BOX', 'BALL').required().messages({
     'any.only': 'Unit must be KG, LITER, GRAM, ML, PIECE, BOX, BALL'
   }),
-  isActive: _joi["default"]["boolean"]().required().messages({
+  isActive: Joi.boolean().required().messages({
     'boolean.base': 'Is Active must be boolean'
   })
 });

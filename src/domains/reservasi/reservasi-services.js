@@ -1,22 +1,74 @@
 import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
-import statusCodes from "../../errors/status-codes.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import ReservasiRepository from "./reservasi-repository.js";
+import TableRepository from "../table/table-repository.js";
+import MenuRepository from "../menu/menu-repository.js";
+
 
 class ReservasiServices {
     constructor() {
         this.ReservasiRepository = ReservasiRepository;
+        this.TableRepository = TableRepository;
+        this.MenuRepository = MenuRepository;
     }
     
     getAll = async (params = {}) => {
-      let reservasis = await this.ReservasiRepository.get({
-        ...params,
-      });
+        let {
+            start = 1,
+            length = 10,
+            search = '',
+            advSearch,
+            order,
+        } = params;
 
-      reservasis = camelize(reservasis);
+        start = JSON.parse(start);
+        length = JSON.parse(length);
 
-      return reservasis;
+        advSearch = (advSearch) ? JSON.parse(advSearch) : null;
+        order = (order) ? JSON.parse(order) : null;
+
+        const where = {
+            ...(search && {
+                OR: [
+                    { reserve_by: { contains: search } },
+                    { community: { contains: search } },
+                    { phone_number: { contains: search } },
+                    // { note: { contains: search } },
+                ],
+            }),
+            ...(advSearch && {
+                ...(advSearch.reserveBy && { reserve_by: { contains: advSearch.reserveBy } }),
+                ...(advSearch.community && { community: advSearch.community }),
+                ...(advSearch.phoneNumber && { phone_number: advSearch.phoneNumber }),
+                ...(advSearch.note && { note: { contains: advSearch.note } }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+                ...(advSearch.id && { id: advSearch.id }),
+                ...((advSearch.startDate || advSearch.endDate) && {
+                    created_at: {
+                        ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
+                        ...(advSearch.endDate && { lte: new Date(advSearch.endDate) }),
+                    },
+                }),
+            }),
+        };
+
+        const orderBy = Array.isArray(order) ? order.map(o => ({
+            [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
+        })) : [];
+
+        const filters = {
+            where,
+            orderBy,
+            skip: start - 1,
+            take: length,
+        };
+
+        let reservasis = await this.ReservasiRepository.get(filters);
+
+        reservasis = camelize(reservasis);
+
+        return reservasis;
     };
 
     getById = async (id, params = {}) => {
@@ -34,13 +86,69 @@ class ReservasiServices {
     };
 
     create = async (data) => {
-      data = convertKeysToSnakeCase(data)
+        data = convertKeysToSnakeCase(data);
 
-      let reservasi = await this.ReservasiRepository.create(data);
+        data.start = new Date(data.start);
+        data.end = new Date(data.end);
 
-      reservasi = camelize(reservasi);
+        let minimumCapacity = 0;
+        let dataDetailReservasi = [];
+        for (const tableId of data.tables) {
+            const table = await this.TableRepository.getById(tableId);
+    
+            if (!table || table.deleted_at) {
+                throw BaseError.badRequest(`Table with id ${tableId} does not exist`);
+            }
+    
+            minimumCapacity += table.min_capacity;
 
-      return reservasi;
+            dataDetailReservasi.push({
+                table_id: table.id,
+            });
+        }
+
+        let menuCount = 0;
+        let dataOrders = {
+            order_by: data.reserve_by,
+            phone_number: data.phone_number,
+            order_detail: {
+                create: []
+            }
+        };
+        
+        for (const menuItem of data.menus) {
+            const menu = await this.MenuRepository.getById(menuItem.id);
+    
+            if (!menu || menu.deleted_at) {
+                throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
+            }
+    
+            menuCount += 1;
+
+            dataOrders.order_detail.create.push({
+                menu_id: menu.id,
+                qty: menuItem.quantity,
+                price: menu.price,
+                note: menuItem.note
+            });
+        }
+
+        data.detail_reservasis = {
+            create : dataDetailReservasi
+        };
+
+        data.orders = {
+            create : dataOrders
+        };
+
+        delete data.tables;
+        delete data.menus;
+
+        let reservasi = await this.ReservasiRepository.create(data);
+
+        reservasi = camelize(reservasi);
+
+        return reservasi;
     }
 
     update = async (id, data) => {
@@ -74,7 +182,6 @@ class ReservasiServices {
     }
 
     deletePermanent = async (id) => {
-        
         const isExist = await this.ReservasiRepository.getById(id);
 
         if (!isExist || isExist.deleted_at) {
@@ -83,40 +190,6 @@ class ReservasiServices {
 
         await this.ReservasiRepository.deletePermanent(id);
     }
-  
-    // findById = async (reservasiId) => {
-    //   const reservasi = await this.ReservasiRepository.getById(reservasiId);
-  
-    //   return null;
-    // };
-  
-    // update = async (test_id, data) => {
-    //   // const test = await db.Test.findOne({
-    //   //   where: {
-    //   //     id: test_id,
-    //   //   },
-    //   // });
-    //   // if (!test) {
-    //   //   throw new BaseError(400, statusCodes.BAD_REQUEST.message, "Test Does not exist");
-    //   // }
-    //   // await test.update(data);
-    // };
-  
-    // delete = async (test_id) => {
-    //   // const test = await db.Test.findOne({
-    //   //   where: {
-    //   //     id: test_id,
-    //   //   },
-    //   // });
-    //   // if (!test) {
-    //   //   throw new BaseError(400, statusCodes.BAD_REQUEST.message, "Test Does not exist");
-    //   // }
-    //   // await db.Test.destroy({
-    //   //   where: {
-    //   //     id: test_id,
-    //   //   },
-    //   // });
-    // };
   }
   
   export default new ReservasiServices();

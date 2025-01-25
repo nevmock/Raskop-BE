@@ -10,10 +10,10 @@ const app = new ExpressApplication(PORT);
 const server = app.start();
 
 process.on("SIGTERM", () => {
-    logger.warn("SIGTERM RECEIVED!");
-    server.close(() => {
-        logger.warn("Process Terminated!");
-    });
+  logger.warn("SIGTERM RECEIVED!");
+  server.close(() => {
+    logger.warn("Process Terminated!");
+  });
 });
 
 // const app = new ExpressApplication(PORT).app;

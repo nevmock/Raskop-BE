@@ -1,0 +1,344 @@
+paths:
+  /menu:
+    get:
+      tags:
+        - Menu
+      summary: Get menu data
+      parameters:
+        - name: params
+          in: query
+          description: Params for get menu data
+          required: false
+          schema:
+            type: object
+            properties:
+              start:
+                type: number
+                example: 1
+              length:
+                type: number
+                example: 10
+              search:
+                type: string
+                example: "Menu 1"
+              advSearch:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  category:
+                    type: string
+                  price:
+                    type: number
+                    format: float
+                  description:
+                    type: string
+                  imageUri:
+                    type: string
+                  qty:
+                    type: number
+                  isActive:
+                    type: boolean
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  deletedAt:
+                    type: string
+                    format: date-time
+              order:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column:
+                      type: string
+                      enum: [name, category, price, createdAt, updatedAt, deletedAt]
+                    direction:
+                      type: string
+                      enum: [ASC, DESC]
+            example:
+              start: 1
+              length: 10
+              search: "Menu 1"
+              advSearch:
+                id: "df3041fe-e8a0-44d1-91c0-9a2e36b3e30d"
+                name: "Menu 1"
+                category: "Food"
+                price: 10000
+                description: "Ini deskripsi menu 1"
+                imageUri: null
+                qty: 10
+                isActive: true
+                createdAt: "2025-01-13T20:22:40.227Z"
+                updatedAt: "2025-01-13T20:22:40.227Z"
+                deletedAt: null
+              order:
+                - column: name
+                  direction: ASC
+                - column: price
+                  direction: DESC
+
+      responses:
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          minLength: 3
+                          maxLength: 150
+                        price:
+                          type: number
+                          format: float
+                        description:
+                          type: string
+                        category:
+                          type: string
+                        imageUri:
+                          type: string
+                          nullable: true
+                        qty:
+                          type: number
+                        isActive:
+                          type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors:
+                    type: NULL
+        404:
+          description: No menu data found
+        500:
+          description: Internal server error
+
+    post:
+      tags:
+        - Menu
+      summary: Create or Update menu data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  required: false
+                name:
+                  type: string
+                  required: true
+                  minLength: 3
+                  maxLength: 150
+                price:
+                  type: number
+                  format: float
+                  required: true
+                description:
+                  type: string
+                  required: true
+                category:
+                  type: string
+                  required: true
+                imageUri:
+                  type: string
+                  nullable: true
+                qty:
+                  type: number
+                  required: true
+                isActive:
+                  type: boolean
+                  default: false
+            examples:
+              Create Menu:
+                value:
+                  name: "Menu 1"
+                  price: 10000
+                  description: "Ini deskripsi menu 1"
+                  category: "Food"
+                  imageUri: "/images/menu/1736800720504-Frame 1321314108.png"
+                  qty: 10
+                  isActive: true
+                  createdAt: "2025-01-13T20:38:40.510Z"
+                  updatedAt: "2025-01-13T20:38:47.201Z"
+                  deletedAt: null
+              Update Menu:
+                value:
+                  id: "df3041fe-e8a0-44d1-91c0-9a2e36b3e30d"
+                  name: "Menu 1"
+                  price: 10000
+                  description: "Ini update deskripsi menu 1"
+                  category: "Food"
+                  imageUri: "/images/menu/1736800720504-Frame 1321314108.png"
+                  qty: 10
+                  isActive: true
+                  createdAt: "2025-01-13T20:38:40.510Z"
+                  updatedAt: "2025-01-13T20:38:47.201Z"
+                  deletedAt: null
+      responses:
+        200:
+          description: Menu data updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      price:
+                        type: number
+                        format: float
+                      description:
+                        type: string
+                      category:
+                        type: string
+                      imageUri:
+                        type: string
+                        nullable: true
+                      qty:
+                        type: number
+                      isActive:
+                        type: boolean
+                  errors:
+                    type: NULL
+        201:
+          description: Menu data created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 201
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      price:
+                        type: number
+                        format: float
+                      description:
+                        type: string
+                      category:
+                        type: string
+                      imageUri:
+                        type: string
+                        nullable: true
+                      qty:
+                        type: number
+                      isActive:
+                        type: boolean
+                  errors:
+                    type: NULL
+        404:
+          description: No menu data found
+        500:
+          description: Internal server error
+
+    delete:
+      tags:
+        - Menu
+      summary: Delete menu data
+      parameters:
+        - name: id
+          in: query
+          description: ID of the menu
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: string
+                    example: "Menu deleted successfully"
+                  errors:
+                    type: NULL
+        404:
+          description: No menu data found
+        500:
+          description: Internal server error
