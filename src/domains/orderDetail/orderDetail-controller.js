@@ -24,9 +24,16 @@ class orderDetailController {
   }
 
   async delete(req, res) {
-    const { id } = req.query;
-    const result = await OrderDetailService.delete(id);
-    return successResponse(res, "Supplier deleted successfully");
+    const { id, permanent } = req.query;
+
+    if (permanent === true || permanent === "true") {
+      await OrderDetailService.deletePermanent(id);
+
+      return successResponse(res, "OrderDetail deleted permanently");
+    }
+    await OrderDetailService.delete(id);
+
+    return successResponse(res, "OrderDetail deleted successfully");
   }
 }
 

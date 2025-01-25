@@ -11,13 +11,12 @@ class orderDetailRepository extends BaseRepository {
 
   async create(data) {
     let { deleted_at, ...filteredData } = data;
-
     return await super.create(filteredData);
   }
-
+  
   async update(id, data) {
     let { deleted_at, ...filteredData } = data;
-
+    
     return await super.update(id, filteredData);
   }
 }
