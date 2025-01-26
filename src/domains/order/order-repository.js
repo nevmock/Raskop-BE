@@ -1,18 +1,15 @@
 import db from "../../utils/prisma.js";
 import BaseRepository from "../../base_classes/base-repository.js";
 
-class MenuRepository extends BaseRepository {
+class OrderRepository extends BaseRepository {
   constructor() {
     super({
-      model: db.menu,
+      model: db.order,
     });
   }
 
   async create(data) {
     let { deleted_at, ...filteredData } = data;
-
-    this.toFloat(filteredData, ["price", "qty"]);
-    this.toBoolean(filteredData, ["is_active"]);
 
     return await super.create(filteredData);
   }
@@ -24,4 +21,4 @@ class MenuRepository extends BaseRepository {
   }
 }
 
-export default new MenuRepository();
+export default new OrderRepository();
