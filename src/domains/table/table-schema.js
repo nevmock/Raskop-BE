@@ -5,11 +5,11 @@ export const tableSchema = Joi.object({
             'string.base': 'Id must be string',
             'string.guid': 'Id must be guid',
     }),
-    minCapacity: Joi.number().min(0).required().messages({
+    minCapacity: Joi.number().integer().min(0).required().messages({
         'number.base': 'Min capacity must be number',
         'number.min': 'Min capacity must be greater than 0',
     }),
-    maxCapacity: Joi.number().min(0).required().messages({
+    maxCapacity: Joi.number().min(0).greater(Joi.ref('minCapacity')).required().messages({
         'number.base': 'Max capacity must be number',
         'number.min': 'Max capacity must be greater than 0',
     }),

@@ -10,6 +10,18 @@ class TableController {
     
         return successResponse(res, data, total);
     }
+
+    async show(req, res){
+        const { id } = req.params;
+
+        if (!id) {
+            throw BaseError.badRequest("ID is required");
+        }
+    
+        const table = await TableServices.getById(id);
+    
+        return successResponse(res, table);
+    }
   
   
     async createOrUpdate(req, res) {
@@ -19,11 +31,6 @@ class TableController {
         const imageUri = `/images/table/${req.file.filename}`;
         data.imageUri = imageUri;
       }
-
-      // data.minCapacity = parseInt(data.minCapacity);
-      // data.maxCapacity = parseInt(data.maxCapacity);
-      // data.isOutdoor = data.isOutdoor === "true" || data.isOutdoor === true;
-      // data.isActive = data.isActive === "true" || data.isActive === true;
       
       if (data.id) {
         const table = await TableServices.update(data.id, data, req.file);

@@ -11,6 +11,10 @@ class TableRoutes extends BaseRoutes {
             tryCatch(TableController.index)
         ]);
 
+        this.router.get('/:id', [
+            tryCatch(TableController.show)
+        ])
+
         this.router.post('/', [
             createUploadMiddleware('table'),
             validateCredentials(tableSchema),

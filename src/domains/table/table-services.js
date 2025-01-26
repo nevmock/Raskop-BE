@@ -34,13 +34,14 @@ class TableServices {
                 ],
             }),
             ...(advSearch && {
+                ...(advSearch.id && { id: { contains: advSearch.id }}),
                 ...(advSearch.minCapacity && { min_capacity: advSearch.minCapacity }),
                 ...(advSearch.maxCapacity && { max_capacity: advSearch.maxCapacity }),
                 ...(advSearch.description && { description: { contains: advSearch.description } }),
                 ...(advSearch.noTable && { no_table: { contains: advSearch.noTable } }),
                 ...(advSearch.isOutdoor !== undefined && { is_outdoor: advSearch.isOutdoor }),
                 ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
-                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
                 ...((advSearch.startDate || advSearch.endDate) && {
                     created_at: {
                         ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
@@ -150,7 +151,7 @@ class TableServices {
     }
 
     deletePermanent = async (id) => {
-        const isExist = await this.TableRepository.getById(id);
+        const isExist = await this.TableRepository.getById(id, { include : { detail_reservasis: true } });
 
         if (!isExist) {
             throw BaseError.notFound("Table does not exist");
@@ -158,6 +159,10 @@ class TableServices {
 
         if (!isExist.deleted_at) {
             throw BaseError.badRequest("Table is not deleted yet");
+        }
+
+        if (isExist.detail_reservasis.length > 0) {
+            throw BaseError.badRequest("Table cannot be deleted permanently because there are reservasions that use this Table");
         }
 
         if (isExist.image_uri) {

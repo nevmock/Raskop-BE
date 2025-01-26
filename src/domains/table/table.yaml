@@ -69,7 +69,7 @@ paths:
                 maxCapacity: 4
                 description: "Example"
                 noTable: "TB-001"
-                is_outdoor: true
+                isOutdoor: true
                 barcode: "09123456789"
                 isActive: true
                 startDate: "2021-01-01T00:00:00.000Z"
@@ -108,30 +108,22 @@ paths:
                         id:
                           type: string
                           format: uuid
-                        name:
-                          type: string
-                          minLength: 3
-                          maxLength: 150
-                        contact:
-                          type: string
-                          minLength: 3
-                          maxLength: 12
-                        type:
-                          type: string
-                          enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                        productName:
-                          type: string
-                        price:
+                        minCapacity:
                           type: number
-                          format: float
-                        shippingFee:
+                          format: int64
+                        maxCapacity:
                           type: number
-                          format: float
-                        address:
+                          format: int64
+                        imageUri:
                           type: string
-                        unit:
+                        description:
                           type: string
-                          enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                        noTable:
+                          type: string
+                        isOutdoor:
+                          type: boolean
+                        barcode:
+                          type: string
                         isActive:
                           type: boolean
                         createdAt:
@@ -166,9 +158,11 @@ paths:
                   format: uuid
                 minCapacity:
                   type: number
+                  format: int64
                   example: 2
                 maxCapacity:
                   type: number
+                  format: int64
                   example: 4
                 image:
                   type: string
@@ -212,119 +206,228 @@ paths:
                         id:
                           type: string
                           format: uuid
-                          
-                        name:
-                          type: string
-                          minLength: 3
-                          maxLength: 150
-                        contact:
-                          type: string
-                          minLength: 3
-                          maxLength: 12
-                        type:
-                          type: string
-                          enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-                        productName:
-                          type: string
-                        price:
+                        minCapacity:
                           type: number
-                          format: float
-                        shippingFee:
+                          format: int64
+                        maxCapacity:
                           type: number
-                          format: float
-                        address:
+                          format: int64
+                        imageUri:
                           type: string
-                        unit:
+                        description:
                           type: string
-                          enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                        noTable:
+                          type: string
+                        isOutdoor:
+                          type: boolean
+                        barcode:
+                          type: string
                         isActive:
                           type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
                   errors: 
                     type: NULL
+        201:
+          description: Table data created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 201
+                  status:
+                    type: string
+                    example: "Created"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        minCapacity:
+                          type: number
+                          format: int64
+                        maxCapacity:
+                          type: number
+                          format: int64
+                        imageUri:
+                          type: string
+                        description:
+                          type: string
+                        noTable:
+                          type: string
+                        isOutdoor:
+                          type: boolean
+                        barcode:
+                          type: string
+                        isActive:
+                          type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors: 
+                    type: NULL
+        400:
+          description: Validation Error/Bad Request
+        404:
+          description: Table not found
+        500:
+          description: Internal server error
 
+    delete:
+      tags:
+        - Table
+      summary: Delete table data
+      parameters:
+        - name: id
+          in: query
+          description: Table ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "13087215-815c-4b98-b383-e57e0157eb7c"
+        - name: permanent
+          in: query
+          description: Permanent delete
+          required: false
+          schema:
+            type: boolean
+            example: false
+      responses: 
+        200:
+          description: Table data deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: string
+                    example: "Table deleted successfully"
+              
+                  errors: 
+                    type: NULL
+        400 :
+          description: Table should be delete first
+        404 : 
+          description: Table not found
+        500:
+          description: Internal server error
 
-
-    #     201:
-    #       description: Table data created
-    #     404:
-    #       description: No table data found
-    #     500:
-    #       description: Internal server error
-
-    # delete:
-    #   tags:
-    #     - Table
-    #   summary: Delete table data
-
-    #   parameters:
-    #     - name: id
-    #       in: query
-    #       description: ID of the table
-    #       required: true
-    #       schema:
-    #         type: string
-    #     - name: permanent
-    #       in: query
-    #       description: Permanent delete
-    #       required: false
-    #       schema:
-    #         type: boolean
-
-    #   responses: 
-    #     200 with ID:
-    #       description: Success response
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: object
-    #             properties:
-    #               code:
-    #                 type: integer
-    #                 format: int64
-    #                 example: 200
-    #               status:
-    #                 type: string
-    #                 example: "OK"
-    #               recordsTotal:
-    #                 type: integer
-    #                 format: int64
-    #                 example: 1
-    #               data:
-    #                 type: object
-    #                 properties:
-    #                   id:
-    #                     type: string
-    #                     format: uuid
-    #                   name:
-    #                     type: string
-    #                     minLength: 3
-    #                     maxLength: 150
-    #                   contact:
-    #                     type: string
-    #                     minLength: 3
-    #                     maxLength: 12
-    #                   type:
-    #                     type: string
-    #                     enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
-    #                   productName:
-    #                     type: string
-    #                   price:
-    #                     type: number
-    #                     format: float
-    #                   shippingFee:
-    #                     type: number
-    #                     format: float
-    #                   address:
-    #                     type: string
-    #                   unit:
-    #                     type: string
-    #                     enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
-    #                   isActive:
-    #                     type: boolean
-    #               errors: 
-    #                 type: NULL
-        
-    #     404:
-    #       description: No table data found
-    #     500:
-    #       description: Internal server error
+  /table/{id}:
+    get:
+      tags:
+        - Table
+      summary: Get Table data by ID
+      parameters:
+        - name: id
+          in: path
+          description: Table ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "13087215-815c-4b98-b383-e57e0157eb7c"
+      responses: 
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      contact:
+                        type: string
+                        minLength: 3
+                        maxLength: 12
+                      type:
+                        type: string
+                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                      productName:
+                        type: string
+                      price:
+                        type: number
+                        format: float
+                      shippingFee:
+                        type: number
+                        format: float
+                      address:
+                        type: string
+                      unit:
+                        type: string
+                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                      isActive:
+                        type: boolean
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      deletedAt:
+                        type: string
+                        format: date-time
+                  errors: 
+                    type: NULL
+        400:
+          description: ID is required
+        404:
+          description: Table not found
+        500:
+          description: Internal server error
