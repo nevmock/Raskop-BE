@@ -28,5 +28,5 @@ export const tableSchema = Joi.object({
     }),
     isActive: Joi.boolean().optional().messages({
         'boolean.base': 'Is active must be boolean',
-    }),
+    })
 });

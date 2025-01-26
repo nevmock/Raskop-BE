@@ -11,11 +11,17 @@ class TableRepository extends BaseRepository {
     async create(data) {
         let { deleted_at, ...filteredData} = data;
 
+        this.toInt(filteredData, ['min_capacity', 'max_capacity']);
+        this.toBoolean(filteredData, ['is_active', 'is_outdoor']);
+
         return await super.create(filteredData);
     }
 
     async update(id, data) {
         let { deleted_at, ...filteredData} = data;
+
+        this.toInt(filteredData, ['min_capacity', 'max_capacity']);
+        this.toBoolean(filteredData, ['is_active', 'is_outdoor']);
 
         return await super.update(id, filteredData);
     }

@@ -2,6 +2,8 @@ import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import TableRepository from "./table-repository.js";
+import { snakeCase } from "change-case";
+import { deleteFileIfExists } from "../../utils/delete-file.js";
 
 class TableServices {
     constructor() {
@@ -91,6 +93,13 @@ class TableServices {
     create = async (data) => {
         data = convertKeysToSnakeCase(data);
 
+        const isNoTableExist = await this.TableRepository.getByNoTable(data.no_table);
+
+        if (isNoTableExist) {
+            deleteFileIfExists(data.image_uri);
+            throw BaseError.badRequest("No Table already exist");
+        }
+
         let table = await this.TableRepository.create(data);
 
         table = camelize(table);
@@ -100,10 +109,18 @@ class TableServices {
 
     update = async (id, data, file) => {
         const isExist = await this.TableRepository.getById(id);
+
         if (!isExist) {
             throw BaseError.notFound("Table does not exist");
         }
         data = convertKeysToSnakeCase(data)
+
+        const isNoTableExist = await this.TableRepository.getByNoTable(data.no_table);
+
+        if (isNoTableExist && isNoTableExist.id !== id) {
+            deleteFileIfExists(data.image_uri);
+            throw BaseError.badRequest("No Table already exist");
+        }
 
         if (file && isExist.image_uri) {
             deleteFileIfExists(isExist.image_uri);

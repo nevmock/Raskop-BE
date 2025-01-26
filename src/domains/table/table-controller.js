@@ -19,6 +19,11 @@ class TableController {
         const imageUri = `/images/table/${req.file.filename}`;
         data.imageUri = imageUri;
       }
+
+      // data.minCapacity = parseInt(data.minCapacity);
+      // data.maxCapacity = parseInt(data.maxCapacity);
+      // data.isOutdoor = data.isOutdoor === "true" || data.isOutdoor === true;
+      // data.isActive = data.isActive === "true" || data.isActive === true;
       
       if (data.id) {
         const table = await TableServices.update(data.id, data, req.file);

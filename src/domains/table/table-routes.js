@@ -12,8 +12,8 @@ class TableRoutes extends BaseRoutes {
         ]);
 
         this.router.post('/', [
-            validateCredentials(tableSchema),
             createUploadMiddleware('table'),
+            validateCredentials(tableSchema),
             tryCatch(TableController.createOrUpdate)
         ]);
 
