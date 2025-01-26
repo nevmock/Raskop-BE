@@ -35,7 +35,7 @@ class MenuServices {
             ],
         }),
         ...(advSearch && {
-          ...(advSearch.id && { id: advSearch.id }),
+          ...(advSearch.id && { id: { contains: advSearch.id }}),
           ...(advSearch.name && { name: { contains: advSearch.name } }),
           ...(advSearch.price && { price: advSearch.price }),
           ...(advSearch.description && { description: { contains: advSearch.description } }),
