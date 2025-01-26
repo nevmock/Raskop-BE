@@ -1,18 +1,17 @@
+import db from "../utils/prisma.js"
+
 class BaseRepository {
     constructor({ model }) {
         this.model = model;
     }
 
-    async get(params = {}) {
-        // const [data, total] = await this.model.$transaction([
-        //     this.model.findMany(params ? {
-        //         ...params
-        //     } : undefined),
-        //     this.model.count({
-        //         where: params.where
-        //     })
-        // ]);
+    async withTransaction(actions) {
+        const transaction = await db.$transaction(actions);
 
+        return transaction;
+    }
+
+    async get(params = {}) {
         const data = await this.model.findMany(params ? {
             ...params
         } : undefined)
@@ -33,6 +32,9 @@ class BaseRepository {
                 id: id,
                 ...params.where
             },
+            include: {
+                ...params.include
+            }
         });
     }
 
@@ -73,6 +75,12 @@ class BaseRepository {
     toFloat(data, dataKeys) {
         dataKeys.forEach((key) => {
             data[key] = parseFloat(data[key]);
+        });
+    }
+
+    toInt(data, dataKeys) {
+        dataKeys.forEach((key) => {
+            data[key] = parseInt(data[key]);
         });
     }
 
