@@ -11,6 +11,10 @@ class SupplierRoutes extends BaseRoutes {
             tryCatch(SupplierController.index)
         ]);
 
+        this.router.get('/:id', [
+            tryCatch(SupplierController.show)
+        ])
+
         this.router.post('/', [
             validateCredentials(supplierSchema), 
             tryCatch(SupplierController.createOrUpdate)
