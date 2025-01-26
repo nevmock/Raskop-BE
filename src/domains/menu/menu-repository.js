@@ -20,9 +20,6 @@ class MenuRepository extends BaseRepository {
   async update(id, data) {
     let { deleted_at, ...filteredData } = data;
 
-    this.toFloat(filteredData, ["price", "qty"]);
-    this.toBoolean(filteredData, ["is_active"]);
-
     return await super.update(id, filteredData);
   }
 }

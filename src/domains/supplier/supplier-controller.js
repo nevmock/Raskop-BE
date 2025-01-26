@@ -1,5 +1,6 @@
 import SupplierServices from "./supplier-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
+import BaseError from "../../base_classes/base-error.js";
 
 class SupplierController {
   async index(req, res) {
@@ -8,6 +9,18 @@ class SupplierController {
     const { data, total } = await SupplierServices.getAll(params);
 
     return successResponse(res, data, total);
+  }
+
+  async show(req, res){
+    const { id } = req.params;
+
+    if (!id) {
+      throw BaseError.badRequest("ID is required");
+    }
+
+    const supplier = await SupplierServices.getById(id);
+
+    return successResponse(res, supplier);
   }
 
 
@@ -29,12 +42,12 @@ class SupplierController {
     const { id, permanent } = req.query;
 
     if (permanent === true || permanent === "true") {
-      console.log("coming here")
+
       await SupplierServices.deletePermanent(id);
 
       return successResponse(res, "Supplier deleted permanently");
     }
-    // console.log("coming here")
+
     await SupplierServices.delete(id);
 
     return successResponse(res, "Supplier deleted successfully");

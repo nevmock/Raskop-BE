@@ -1,6 +1,14 @@
+import db from "../utils/prisma.js"
+
 class BaseRepository {
     constructor({ model }) {
         this.model = model;
+    }
+
+    async withTransaction(actions) {
+        const transaction = await db.$transaction(actions);
+
+        return transaction;
     }
 
     async get(params = {}) {
@@ -24,6 +32,9 @@ class BaseRepository {
                 id: id,
                 ...params.where
             },
+            include: {
+                ...params.include
+            }
         });
     }
 
@@ -41,7 +52,7 @@ class BaseRepository {
             data: data,
         });
     }
-    
+
     async delete(id) {
         return this.model.update({
             where: {
@@ -67,6 +78,12 @@ class BaseRepository {
         });
     }
 
+    toInt(data, dataKeys) {
+        dataKeys.forEach((key) => {
+            data[key] = parseInt(data[key]);
+        });
+    }
+
     toBoolean(data, dataKeys) {
         dataKeys.forEach((key) => {
             data[key] = (data[key] === 'true' || data[key] === true);
@@ -78,8 +95,6 @@ class BaseRepository {
     //         data[key] = parseInt(data[key]);
     //     });
     // }
-
-    
 }
 
 export default BaseRepository;
