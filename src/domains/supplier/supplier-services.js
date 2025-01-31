@@ -34,17 +34,17 @@ class SupplierServices {
                 ],
             }),
             ...(advSearch && {
+                ...(advSearch.id && { id: { contains: advSearch.id }}),
                 ...(advSearch.contact && { contact: { contains: advSearch.contact } }),
                 ...(advSearch.unit && { unit: advSearch.unit }),
                 ...(advSearch.price && { price: advSearch.price }),
                 ...(advSearch.name && { name: { contains: advSearch.name } }),
                 ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
-                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
                 ...(advSearch.address && { address: { contains: advSearch.address } }),
                 ...(advSearch.shippingFee && { shipping_fee: advSearch.shippingFee }),
                 ...(advSearch.productName && { product_name: { contains: advSearch.productName } }),
                 ...(advSearch.type && { type: advSearch.type }),
-                ...(advSearch.id && { id: advSearch.id }),
                 ...((advSearch.startDate || advSearch.endDate) && {
                     created_at: {
                         ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
@@ -129,8 +129,12 @@ class SupplierServices {
     deletePermanent = async (id) => {
         const isExist = await this.SupplierRepository.getById(id);
 
-        if (!isExist || isExist.deleted_at) {
+        if (!isExist) {
             throw BaseError.notFound("Supplier does not exist");
+        }
+
+        if (!isExist.deleted_at) {
+            throw BaseError.badRequest("Supplier is not deleted yet");
         }
 
         await this.SupplierRepository.deletePermanent(id);

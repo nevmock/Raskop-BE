@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,48 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model User {
-//   id        String   @id @default(cuid())
-//   email     String   @unique
-//   name      String?
-//   password  String
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   deletedAt DateTime?
-// }
-
 model Table {
-  id           String    @id @default(uuid())
-  min_capacity Int
-  max_capacity Int
-  image_uri    String?   @db.Text
-  description  String?   @db.Text
-  no_table     String    @unique
-  is_outdoor   Boolean
-  barcode      String?
-  is_active    Boolean
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  deleted_at    DateTime?
-
+  id                String            @id @default(uuid())
+  min_capacity      Int
+  max_capacity      Int
+  image_uri         String?           @db.Text
+  description       String?           @db.Text
+  no_table          String            @unique
+  is_outdoor        Boolean
+  barcode           String?
+  is_active         Boolean
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  deleted_at        DateTime?
   detail_reservasis DetailReservasi[]
 
   @@map("table")
 }
 
 model Menu {
-  id          String    @id @default(uuid())
-  name        String
-  price       Float
-  description String    @db.Text
-  category    String
-  image_uri   String?   @db.Text
-  qty         Int       @default(0)
-  is_active   Boolean   @default(false)
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-  deleted_at   DateTime?
-
+  id            String        @id @default(uuid())
+  name          String
+  price         Float
+  description   String        @db.Text
+  category      String
+  image_uri     String?       @db.Text
+  qty           Int           @default(0)
+  is_active     Boolean       @default(false)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  deleted_at    DateTime?
   order_details OrderDetail[]
 
   @@map("menu")
@@ -71,25 +53,26 @@ model Supplier {
   address      String       @db.Text
   unit         Unit
   is_active    Boolean      @default(false)
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
-  deleted_at    DateTime?
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  deleted_at   DateTime?
 
   @@map("supplier")
 }
 
 model Reservasi {
-  id              String            @id @default(uuid())
-  reserve_by      String
-  community       String
-  phone_number    String
-  note            String?           @db.Text
-  start           DateTime
-  end             DateTime
-  created_at       DateTime          @default(now())
-  updated_at       DateTime          @updatedAt
-  deleted_at       DateTime?
-
+  id                String            @id @default(uuid())
+  reserve_by        String
+  community         String
+  phone_number      String
+  note              String?           @db.Text
+  // status            String
+  start             DateTime
+  end               DateTime
+  half_payment      Boolean          @default(false)
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  deleted_at        DateTime?
   detail_reservasis DetailReservasi[]
   orders            Order[]
 
@@ -100,46 +83,65 @@ model DetailReservasi {
   id           String    @id @default(uuid())
   reservasi_id String
   table_id     String
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  deleted_at    DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime?
+  reservasi    Reservasi @relation(fields: [reservasi_id], references: [id])
+  table        Table     @relation(fields: [table_id], references: [id])
 
-  reservasi Reservasi @relation(fields: [reservasi_id], references: [id])
-  table     Table     @relation(fields: [table_id], references: [id])
-
+  @@index([reservasi_id], map: "detail_reservasi_reservasi_id_fkey")
+  @@index([table_id], map: "detail_reservasi_table_id_fkey")
   @@map("detail_reservasi")
 }
 
 model Order {
-  id           String    @id @default(uuid())
+  id           String        @id @default(uuid())
   reservasi_id String?
   order_by     String
   phone_number String
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
-  deleted_at    DateTime?
-
-  reservasi Reservasi? @relation(fields: [reservasi_id], references: [id])
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  deleted_at   DateTime?
+  reservasi    Reservasi?    @relation(fields: [reservasi_id], references: [id])
   order_detail OrderDetail[]
+  transaction  Transaction[]
 
+  @@index([reservasi_id], map: "order_reservasi_id_fkey")
   @@map("order")
 }
 
 model OrderDetail {
-  id        String    @id @default(uuid())
-  order_id  String
-  menu_id   String
-  qty       Int
-  price     Float
-  note      String?   @db.Text
+  id         String    @id @default(uuid())
+  order_id   String
+  menu_id    String
+  qty        Int
+  price      Float
+  note       String?   @db.Text
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
+  menu       Menu      @relation(fields: [menu_id], references: [id])
+  order      Order     @relation(fields: [order_id], references: [id])
 
-  menu      Menu     @relation(fields: [menu_id], references: [id])
-  order    Order    @relation(fields: [order_id], references: [id])
-
+  @@index([menu_id], map: "order_detail_menu_id_fkey")
+  @@index([order_id], map: "order_detail_order_id_fkey")
   @@map("order_detail")
+}
+
+model Transaction {
+  id         String    @id @default(uuid())
+  trx_id     String?
+  order_id   String
+  gross_amount Float
+  payment_method String
+  admin_fee  Float
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  order      Order     @relation(fields: [order_id], references: [id])
+
+  @@index([order_id], map: "transaction_order_id_fkey")
+  @@map("transaction")
 }
 
 enum SupplierType {

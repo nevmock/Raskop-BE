@@ -91,8 +91,9 @@ class ReservasiServices {
         data.start = new Date(data.start);
         data.end = new Date(data.end);
 
-        let minimumCapacity = 0;
+        let sumMinimumTableCapacity = 0;
         let dataDetailReservasi = [];
+
         for (const tableId of data.tables) {
             const table = await this.TableRepository.getById(tableId);
     
@@ -100,14 +101,14 @@ class ReservasiServices {
                 throw BaseError.badRequest(`Table with id ${tableId} does not exist`);
             }
     
-            minimumCapacity += table.min_capacity;
+            sumMinimumTableCapacity += table.min_capacity;
 
             dataDetailReservasi.push({
                 table_id: table.id,
             });
         }
 
-        let menuCount = 0;
+        let sumTotalMenu = 0;
         let dataOrders = {
             order_by: data.reserve_by,
             phone_number: data.phone_number,
@@ -115,6 +116,8 @@ class ReservasiServices {
                 create: []
             }
         };
+
+        let menus = [];
         
         for (const menuItem of data.menus) {
             const menu = await this.MenuRepository.getById(menuItem.id);
@@ -123,7 +126,7 @@ class ReservasiServices {
                 throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
             }
     
-            menuCount += 1;
+            sumTotalMenu += 1;
 
             dataOrders.order_detail.create.push({
                 menu_id: menu.id,
@@ -131,6 +134,12 @@ class ReservasiServices {
                 price: menu.price,
                 note: menuItem.note
             });
+
+            menus.push(menu);
+        }
+
+        if (sumTotalMenu < sumMinimumTableCapacity){
+            throw BaseError.badRequest(`Total menu must be more than or equal to total table capacity`);
         }
 
         data.detail_reservasis = {
@@ -143,6 +152,34 @@ class ReservasiServices {
 
         delete data.tables;
         delete data.menus;
+
+        // return data;
+
+        // const authString = btoa(`${process.env.MIDTRANS_SERVER_KEY}:`);
+
+        // const midTransPayload = {
+        //     transaction_details: {
+        //         order_id: transaction_id,
+        //         gross_amount
+        //     },
+        //     item_details: menus.map((menu) => ({
+        //         id: menu.id,
+        //         price: menu.price,
+        //         quantity: menu.quantity,
+        //         name: menu.name,
+        //     })),
+        //     customer_details: {
+        //         first_name: customer_name,
+        //         email: customer_email
+        //     },
+        //     callbacks: {
+        //         finish: `${FRONT_END_URL}/order-status?transaction_id=${transaction_id}`,
+        //         error: `${FRONT_END_URL}/order-status?transaction_id=${transaction_id}`,
+        //         pending: `${FRONT_END_URL}/order-status?transaction_id=${transaction_id}`
+        //     }
+        // }
+
+        // return midTransPayload;
 
         let reservasi = await this.ReservasiRepository.create(data);
 

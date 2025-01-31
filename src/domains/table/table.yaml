@@ -1,40 +1,433 @@
-# paths:
-#   /pet/{id}:         # path of the user from your endpoint
-#     put:              # endpoint request type (put request)
-#       tags:
-#         - Pet
-#       summary: It updates a pet profile detail
-#       produces:
-#       - application/json
-#       parameters:     # request parameters
-#       - name: id      # name of parameter passed
-#         in: path      # parameters in the path
-#         description: path parameter takes the pet id
-#         required: true
-#         type: string
-#       - in: body
-#         name: update pet
-#         description: It enables a user to update pet profile
-#         required: false
-#         schema:
-#           $ref: '#/definitions/updatePet'
-#       responses:
-#         200:
-#           description: An object with a user updated user profile detail
-#         401:
-#           description: Unauthorized users
-# definitions:        # Schema definition for the request body
-#   updatePet:
-#     type: object
-#     properties:
-#       pet:
-#         type: object
-#         properties:
-#           petname:
-#             type: string
-#           petFavorite:
-#             type: string
-#           image:
-#             type: string
-#           password:
-#             type: string
+paths:
+  /table: 
+    get:             
+      tags:
+        - Table
+      summary: Get Table datas
+      parameters:
+        - name: params 
+          in: query
+          description: Params for get Table data
+          required: false
+          schema:
+            type: object
+            properties:
+              start:
+                type: number
+                example: 1
+              length:
+                type: number
+                example: 10
+              search:
+                type: string
+                example: "Table 1"
+              advSearch:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  minCapacity:
+                    type: number
+                  maxCapacity:
+                    type: number
+                  description:
+                    type: string
+                  noTable:
+                    type: string
+                  isOutdoor:
+                    type: boolean
+                  barcode:
+                    type: string
+                  isActive:
+                    type: boolean
+                  startDate:
+                    type: string
+                    format: date-time
+                  endDate:
+                    type: string
+                    format: date-time
+                  withDeleted:
+                    type: boolean
+              order:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column:
+                      type: string
+                      enum: [minCapacity, maxCapacity, description, noTable, isOutdoor, barcode, isActive, createdAt, updatedAt, deletedAt]
+                    direction:
+                      type: string
+                      enum: [ASC, DESC]
+            example:
+              start: 1
+              length: 10
+              search: "test"
+              advSearch:
+                id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                minCapacity: 2
+                maxCapacity: 4
+                description: "Example"
+                noTable: "TB-001"
+                isOutdoor: true
+                barcode: "09123456789"
+                isActive: true
+                startDate: "2021-01-01T00:00:00.000Z"
+                endDate: "2021-12-31T23:59:59.999Z"
+                withDeleted: false
+              order:
+                - column: noTable
+                  direction: ASC
+                - column: maxCapacity
+                  direction: DESC
+
+      responses: 
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        minCapacity:
+                          type: number
+                          format: int64
+                        maxCapacity:
+                          type: number
+                          format: int64
+                        imageUri:
+                          type: string
+                        description:
+                          type: string
+                        noTable:
+                          type: string
+                        isOutdoor:
+                          type: boolean
+                        barcode:
+                          type: string
+                        isActive:
+                          type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors: 
+                    type: NULL
+        500:
+          description: Internal server error
+      
+    post:
+      tags:
+        - Table
+      summary: Create or Update table data
+      consumes:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: 
+              type: object
+              properties:
+                id: 
+                  type: string
+                  format: uuid
+                minCapacity:
+                  type: number
+                  format: int64
+                  example: 2
+                maxCapacity:
+                  type: number
+                  format: int64
+                  example: 4
+                image:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                noTable:
+                  type: string
+                isOutdoor:
+                  type: boolean
+                barcode:
+                  type: string
+                  example: "1234 5678 4672"
+                isActive:
+                  type: boolean
+
+      responses: 
+        200:
+          description: Table data updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        minCapacity:
+                          type: number
+                          format: int64
+                        maxCapacity:
+                          type: number
+                          format: int64
+                        imageUri:
+                          type: string
+                        description:
+                          type: string
+                        noTable:
+                          type: string
+                        isOutdoor:
+                          type: boolean
+                        barcode:
+                          type: string
+                        isActive:
+                          type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors: 
+                    type: NULL
+        201:
+          description: Table data created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 201
+                  status:
+                    type: string
+                    example: "Created"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        minCapacity:
+                          type: number
+                          format: int64
+                        maxCapacity:
+                          type: number
+                          format: int64
+                        imageUri:
+                          type: string
+                        description:
+                          type: string
+                        noTable:
+                          type: string
+                        isOutdoor:
+                          type: boolean
+                        barcode:
+                          type: string
+                        isActive:
+                          type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors: 
+                    type: NULL
+        400:
+          description: Validation Error/Bad Request
+        404:
+          description: Table not found
+        500:
+          description: Internal server error
+
+    delete:
+      tags:
+        - Table
+      summary: Delete table data
+      parameters:
+        - name: id
+          in: query
+          description: Table ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "13087215-815c-4b98-b383-e57e0157eb7c"
+        - name: permanent
+          in: query
+          description: Permanent delete
+          required: false
+          schema:
+            type: boolean
+            example: false
+      responses: 
+        200:
+          description: Table data deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: string
+                    example: "Table deleted successfully"
+              
+                  errors: 
+                    type: NULL
+        400 :
+          description: Table should be delete first
+        404 : 
+          description: Table not found
+        500:
+          description: Internal server error
+
+  /table/{id}:
+    get:
+      tags:
+        - Table
+      summary: Get Table data by ID
+      parameters:
+        - name: id
+          in: path
+          description: Table ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "13087215-815c-4b98-b383-e57e0157eb7c"
+      responses: 
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      contact:
+                        type: string
+                        minLength: 3
+                        maxLength: 12
+                      type:
+                        type: string
+                        enum: [SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT]
+                      productName:
+                        type: string
+                      price:
+                        type: number
+                        format: float
+                      shippingFee:
+                        type: number
+                        format: float
+                      address:
+                        type: string
+                      unit:
+                        type: string
+                        enum: [KG, LITER, GRAM, ML, PIECE, BOX, BALL]
+                      isActive:
+                        type: boolean
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      deletedAt:
+                        type: string
+                        format: date-time
+                  errors: 
+                    type: NULL
+        400:
+          description: ID is required
+        404:
+          description: Table not found
+        500:
+          description: Internal server error

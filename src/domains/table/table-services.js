@@ -2,48 +2,136 @@ import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import TableRepository from "./table-repository.js";
+import { snakeCase } from "change-case";
+import { deleteFileIfExists } from "../../utils/delete-file.js";
 
 class TableServices {
     constructor() {
         this.TableRepository = TableRepository;
     }
 
+    getAll = async (params = {}) => {
+        let {
+            start = 1,
+            length = 10,
+            search = '',
+            advSearch,
+            order,
+        } = params;
+
+        start = JSON.parse(start);
+        length = JSON.parse(length);
+
+        advSearch = (advSearch) ? JSON.parse(advSearch) : null;
+        order = (order) ? JSON.parse(order) : null;
+
+        const where = {
+            ...(search && {
+                OR: [
+                    { barcode: { contains: search } },
+                    { no_table: { contains: search } },
+                    { description: { contains: search } },
+                ],
+            }),
+            ...(advSearch && {
+                ...(advSearch.id && { id: { contains: advSearch.id }}),
+                ...(advSearch.minCapacity && { min_capacity: advSearch.minCapacity }),
+                ...(advSearch.maxCapacity && { max_capacity: advSearch.maxCapacity }),
+                ...(advSearch.description && { description: { contains: advSearch.description } }),
+                ...(advSearch.noTable && { no_table: { contains: advSearch.noTable } }),
+                ...(advSearch.isOutdoor !== undefined && { is_outdoor: advSearch.isOutdoor }),
+                ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
+                ...((advSearch.startDate || advSearch.endDate) && {
+                    created_at: {
+                        ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
+                        ...(advSearch.endDate && { lte: new Date(advSearch.endDate) }),
+                    },
+                }),
+            }),
+        };
+
+        const orderBy = Array.isArray(order) ? order.map(o => ({
+            [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
+        })) : [];
+
+        const filters = {
+            where,
+            orderBy,
+            skip: start - 1,
+            take: length,
+        };
+
+        let tables = await this.TableRepository.get(filters);
+
+        tables = camelize(tables);
+
+        return tables;
+    };
+
     getById = async (id, params = {}) => {
-        let Table = await this.TableRepository.getById(id, {
+        let table = await this.TableRepository.getById(id, {
             ...params,
         });
 
-        if (!Table) {
+        if (!table) {
             throw BaseError.notFound("Table does not exist");
         }
     
-        Table = camelize(Table);
+        table = camelize(table);
     
-        return Table;
+        return table;
     };
+
+    getByNoTable = async (noTable) => {
+        let table = await this.TableRepository.getByNoTable(noTable);
+
+        table = camelize(table);
+
+        return table;
+    }
 
     create = async (data) => {
         data = convertKeysToSnakeCase(data);
 
-        let Table = await this.TableRepository.create(data);
+        const isNoTableExist = await this.TableRepository.getByNoTable(data.no_table);
 
-        Table = camelize(Table);
+        if (isNoTableExist) {
+            deleteFileIfExists(data.image_uri);
+            throw BaseError.badRequest("No Table already exist");
+        }
 
-        return Table;
+        let table = await this.TableRepository.create(data);
+
+        table = camelize(table);
+
+        return table;
     }
 
-    update = async (id, data) => {
+    update = async (id, data, file) => {
         const isExist = await this.TableRepository.getById(id);
+
         if (!isExist) {
             throw BaseError.notFound("Table does not exist");
         }
         data = convertKeysToSnakeCase(data)
 
-        let Table = await this.TableRepository.update(id, data);
+        const isNoTableExist = await this.TableRepository.getByNoTable(data.no_table);
 
-        Table = camelize(Table);
+        if (isNoTableExist && isNoTableExist.id !== id) {
+            deleteFileIfExists(data.image_uri);
+            throw BaseError.badRequest("No Table already exist");
+        }
 
-        return Table;
+        if (file && isExist.image_uri) {
+            deleteFileIfExists(isExist.image_uri);
+        }
+
+        let table = await this.TableRepository.update(id, data);
+
+        table = camelize(table);
+
+        return table;
     }
 
     delete = async (id) => {
@@ -63,10 +151,22 @@ class TableServices {
     }
 
     deletePermanent = async (id) => {
-        const isExist = await this.TableRepository.getById(id);
+        const isExist = await this.TableRepository.getById(id, { include : { detail_reservasis: true } });
 
-        if (!isExist || isExist.deleted_at) {
+        if (!isExist) {
             throw BaseError.notFound("Table does not exist");
+        }
+
+        if (!isExist.deleted_at) {
+            throw BaseError.badRequest("Table is not deleted yet");
+        }
+
+        if (isExist.detail_reservasis.length > 0) {
+            throw BaseError.badRequest("Table cannot be deleted permanently because there are reservasions that use this Table");
+        }
+
+        if (isExist.image_uri) {
+            deleteFileIfExists(isExist.image_uri);
         }
 
         await this.TableRepository.deletePermanent(id);
