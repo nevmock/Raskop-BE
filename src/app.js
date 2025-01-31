@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+import { __dirname, __filename } from "./utils/path.js";
+
 import apicache from "apicache";
 import compression from "compression";
 import cors from "cors";
@@ -7,18 +9,17 @@ import errorHandler from "./middlewares/error-handler-middleware.js";
 import express from "express";
 import helmet from "helmet";
 import logger from "./utils/logger.js";
+import menuRoutes from "./domains/menu/menu-routes.js";
 import morgan from "morgan";
 import multer from "multer";
-import path from "path";
-import { __dirname, __filename } from "./utils/path.js";
-import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "./utils/swagger.js";
-
-import supplierRoutes from "./domains/supplier/supplier-routes.js";
-import menuRoutes from "./domains/menu/menu-routes.js";
-import reservasiRoutes from "./domains/reservasi/reservasi-routes.js";
-import tableRoutes from "./domains/table/table-routes.js";
+import orderDetailRoutes from "./domains/orderDetail/orderDetail-routes.js";
 import orderRoutes from "./domains/order/order-routes.js";
+import path from "path";
+import reservasiRoutes from "./domains/reservasi/reservasi-routes.js";
+import supplierRoutes from "./domains/supplier/supplier-routes.js";
+import swaggerSpec from "./utils/swagger.js";
+import swaggerUi from "swagger-ui-express";
+import tableRoutes from "./domains/table/table-routes.js";
 
 class ExpressApplication {
   app;
@@ -34,7 +35,12 @@ class ExpressApplication {
     //  __init__
     this.configureAssets();
     this.setupRoute();
-    this.setupMiddlewares([errorHandler, express.json(), express.urlencoded(), apicache.middleware("5 minutes")]);
+    this.setupMiddlewares([
+      errorHandler,
+      express.json(),
+      express.urlencoded(),
+      apicache.middleware("5 minutes"),
+    ]);
     this.setupLibrary([
       process.env.NODE_ENV === "development" ? morgan("dev") : "",
       compression(),
@@ -51,7 +57,11 @@ class ExpressApplication {
       },
     });
     this.fileFilter = (req, file, cb) => {
-      if (file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/jpeg") {
+      if (
+        file.mimetype === "image/png" ||
+        file.mimetype === "image/jpg" ||
+        file.mimetype === "image/jpeg"
+      ) {
         cb(null, true);
       } else {
         cb(null, false);
@@ -85,6 +95,7 @@ class ExpressApplication {
     this.app.use("/api/v1/reservasi", reservasiRoutes);
     this.app.use("/api/v1/table", tableRoutes);
     this.app.use("/api/v1/order", orderRoutes);
+    this.app.use("/api/v1/order-detail", orderDetailRoutes);
 
     this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
