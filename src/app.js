@@ -20,7 +20,6 @@ import supplierRoutes from "./domains/supplier/supplier-routes.js";
 import swaggerSpec from "./utils/swagger.js";
 import swaggerUi from "swagger-ui-express";
 import tableRoutes from "./domains/table/table-routes.js";
-import orderRoutes from "./domains/order/order-routes.js";
 
 class ExpressApplication {
   app;
@@ -94,8 +93,9 @@ class ExpressApplication {
     this.app.use("/api/v1/menu", menuRoutes);
     this.app.use("/api/v1/supplier", supplierRoutes);
     this.app.use("/api/v1/reservasi", reservasiRoutes);
-    this.app.use("/api/v1/order-detail", orderDetailRoutes);
+    this.app.use("/api/v1/table", tableRoutes);
     this.app.use("/api/v1/order", orderRoutes);
+    this.app.use("/api/v1/order-detail", orderDetailRoutes);
 
     this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
