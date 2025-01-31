@@ -19,6 +19,8 @@ import reservasiRoutes from "./domains/reservasi/reservasi-routes.js";
 import supplierRoutes from "./domains/supplier/supplier-routes.js";
 import swaggerSpec from "./utils/swagger.js";
 import swaggerUi from "swagger-ui-express";
+import tableRoutes from "./domains/table/table-routes.js";
+import orderRoutes from "./domains/order/order-routes.js";
 
 class ExpressApplication {
   app;
