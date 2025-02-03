@@ -17,7 +17,7 @@ model Table {
   is_outdoor        Boolean
   barcode           String?
   is_active         Boolean
-  merged_available     String?       @db.Text
+  merged_available     Json?       @db.Json
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
   deleted_at        DateTime?
