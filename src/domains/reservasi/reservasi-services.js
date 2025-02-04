@@ -62,7 +62,7 @@ class ReservasiServices {
         })) : [];
 
         const include = {
-            ...(advSearch.withRelation) && {
+            ...(advSearch && advSearch.withRelation) && {
                 detail_reservasis: {
                     include: {
                         table : true
