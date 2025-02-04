@@ -3,7 +3,7 @@ paths:
     post:
       tags:
         - Transaction
-      summary: Create Midtrans transaction For Second Payment
+      summary: Create Midtrans transaction For SECOND Payment Reservasi
       consumes:
         - application/json
       requestBody:
