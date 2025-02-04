@@ -1,0 +1,139 @@
+openapi: 3.0.0
+info:
+  title: Order Detail API
+  version: 1.0.0
+  description: API endpoints for managing order details
+
+paths:
+  /order-detail:
+    get:
+      summary: Get all order details
+      responses:
+        "200":
+          description: Successfully retrieved order details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OrderDetail"
+
+    post:
+      summary: Create or update order detail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderDetailInput"
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+            format: uuid
+          description: Order detail ID (required for update)
+      responses:
+        "200":
+          description: Successfully created/updated order detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/OrderDetail"
+
+    delete:
+      summary: Delete order detail
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Order detail ID to delete
+      responses:
+        "200":
+          description: Successfully deleted order detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/OrderDetail"
+
+components:
+  schemas:
+    OrderDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+          format: uuid
+        menu_id:
+          type: string
+          format: uuid
+        qty:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: float
+        note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    OrderDetailInput:
+      type: object
+      required:
+        - order_id
+        - menu_id
+        - qty
+        - price
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        menu_id:
+          type: string
+          format: uuid
+        qty:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: float
+        note:
+          type: string
+          nullable: true
