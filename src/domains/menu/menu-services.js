@@ -68,8 +68,6 @@ class MenuServices {
         }),
     };
 
-    console.log(where)
-
     const orderBy = Array.isArray(order) ? order.map(o => ({
         [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
     })) : [];
