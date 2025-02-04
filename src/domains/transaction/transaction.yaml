@@ -1,9 +1,9 @@
 paths:
-  /table:     
+  /transaction:     
     post:
       tags:
-        - Reservation
-      summary: Create Midtrans transaction
+        - Transaction
+      summary: Create Midtrans transaction For Second Payment
       consumes:
         - application/json
       requestBody:

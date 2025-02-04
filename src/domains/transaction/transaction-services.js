@@ -95,7 +95,7 @@ class TransactionServices {
                 })
 
                 if (response.status !== 200){
-                    console.log(await response.json())
+                    // console.log(await response.json())
                     throw Error("Failed to expire transaction");
                 }
 
@@ -235,7 +235,7 @@ class TransactionServices {
 
     async trxNotif(data){
         // let order_id = data.metadata.order_id;
-        console.log(data)   
+        // console.log(data)   
 
         const hash = crypto.createHash('sha512').update(`${data.order_id}${data.status_code}${data.gross_amount}${process.env.MIDTRANS_SERVER_KEY}`).digest('hex');
 
@@ -278,7 +278,7 @@ class TransactionServices {
         }
         const successTransactions = await this.TransactionRepository.get(params);
 
-        console.log(params, successTransactions)
+        // console.log(params, successTransactions)
 
         if ((data.transaction_status === "settlement" || data.transaction_status === "capture") && data.fraud_status === "accept"){
             if (order.status === "MENUNGGU_PEMBAYARAN"){
