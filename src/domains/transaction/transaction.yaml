@@ -1,0 +1,61 @@
+paths:
+  /table:     
+    post:
+      tags:
+        - Reservation
+      summary: Create Midtrans transaction
+      consumes:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: string
+                  format: uuid
+                  example: "13087215-815c-4b98-b383-e57e0157eb7c"
+                paymentMethod:
+                  type: string
+                  enum: [bank_transfer, other_qris]
+
+      responses: 
+        201:
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "Created"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                          example: eb949b3f-c85a-43ca-a027-9a0a597b7100
+                        redirectUrl:
+                          type: string
+                          example: https://app.sandbox.midtrans.com/snap/v4/redirection/eb949b3f-c85a-43ca-a027-9a0a597b7100
+                  errors: 
+                    type: NULL
+        400:
+          description: Validation Error/Bad Request
+        404:
+          description: Order not found
+        500:
+          description: Internal server error
