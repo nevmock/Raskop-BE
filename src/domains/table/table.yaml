@@ -1,11 +1,11 @@
 paths:
-  /table: 
-    get:             
+  /table:
+    get:
       tags:
         - Table
       summary: Get Table datas
       parameters:
-        - name: params 
+        - name: params
           in: query
           description: Params for get Table data
           required: false
@@ -55,7 +55,19 @@ paths:
                   properties:
                     column:
                       type: string
-                      enum: [minCapacity, maxCapacity, description, noTable, isOutdoor, barcode, isActive, createdAt, updatedAt, deletedAt]
+                      enum:
+                        [
+                          minCapacity,
+                          maxCapacity,
+                          description,
+                          noTable,
+                          isOutdoor,
+                          barcode,
+                          isActive,
+                          createdAt,
+                          updatedAt,
+                          deletedAt,
+                        ]
                     direction:
                       type: string
                       enum: [ASC, DESC]
@@ -81,7 +93,7 @@ paths:
                 - column: maxCapacity
                   direction: DESC
 
-      responses: 
+      responses:
         200:
           description: Success response
           content:
@@ -135,11 +147,11 @@ paths:
                         deletedAt:
                           type: string
                           format: date-time
-                  errors: 
+                  errors:
                     type: NULL
         500:
           description: Internal server error
-      
+
     post:
       tags:
         - Table
@@ -150,10 +162,10 @@ paths:
         required: true
         content:
           multipart/form-data:
-            schema: 
+            schema:
               type: object
               properties:
-                id: 
+                id:
                   type: string
                   format: uuid
                 minCapacity:
@@ -178,8 +190,16 @@ paths:
                   example: "1234 5678 4672"
                 isActive:
                   type: boolean
+                mergedAvailable[0]:
+                  type: string
+                  format: uuid
+                  example: "20b0ddaf-6391-4f9c-aed0-b0b24336c908"
+                mergedAvailable[1]:
+                  type: string
+                  format: uuid
+                  example: "9a2a802a-4ae2-4a75-a0df-0b4668fa2c3e"
 
-      responses: 
+      responses:
         200:
           description: Table data updated
           content:
@@ -233,7 +253,7 @@ paths:
                         deletedAt:
                           type: string
                           format: date-time
-                  errors: 
+                  errors:
                     type: NULL
         201:
           description: Table data created
@@ -288,7 +308,7 @@ paths:
                         deletedAt:
                           type: string
                           format: date-time
-                  errors: 
+                  errors:
                     type: NULL
         400:
           description: Validation Error/Bad Request
@@ -317,7 +337,7 @@ paths:
           schema:
             type: boolean
             example: false
-      responses: 
+      responses:
         200:
           description: Table data deleted
           content:
@@ -339,12 +359,12 @@ paths:
                   data:
                     type: string
                     example: "Table deleted successfully"
-              
-                  errors: 
+
+                  errors:
                     type: NULL
-        400 :
+        400:
           description: Table should be delete first
-        404 : 
+        404:
           description: Table not found
         500:
           description: Internal server error
@@ -363,7 +383,7 @@ paths:
             type: string
             format: uuid
             example: "13087215-815c-4b98-b383-e57e0157eb7c"
-      responses: 
+      responses:
         200:
           description: Success response
           content:
@@ -423,7 +443,7 @@ paths:
                       deletedAt:
                         type: string
                         format: date-time
-                  errors: 
+                  errors:
                     type: NULL
         400:
           description: ID is required
