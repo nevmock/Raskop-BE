@@ -61,14 +61,32 @@ class ReservasiServices {
             [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
         })) : [];
 
+        const include = {
+            ...(advSearch.withRelation) && {
+                detail_reservasis: {
+                    include: {
+                        table : true
+                    }
+                },
+                orders: {
+                    include: {
+                        order_detail : {
+                            include: {
+                                menu : true
+                            }
+                        },
+                        transaction: true
+                    }
+                },
+            }
+        }
+
         const filters = {
             where,
             orderBy,
             skip: start - 1,
             take: length,
-            include: {
-                orders: true
-            }
+            include
         };
 
         let reservasis = await this.ReservasiRepository.get(filters);

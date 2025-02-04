@@ -48,6 +48,8 @@ paths:
                     format: date-time
                   withDeleted:
                     type: boolean
+                  withRelation:
+                    type: boolean
               order:
                 type: array
                 items:
@@ -74,6 +76,7 @@ paths:
                 startDate: "2021-01-01T00:00:00.000Z"
                 endDate: "2021-12-31T23:59:59.999Z"
                 withDeleted: true
+                withRelation: true
               order:
                 - column: reserveBy
                   direction: ASC

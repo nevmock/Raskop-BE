@@ -151,7 +151,7 @@ class MenuServices {
   deletePermanent = async (id) => {
     const isExist = await this.MenuRepository.getById(id, { include : { order_details : true }});
 
-    console.log(isExist)
+    // console.log(isExist)
 
     if (!isExist) {
       throw BaseError.notFound("Menu does not exist");
