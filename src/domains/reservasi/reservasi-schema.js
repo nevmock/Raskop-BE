@@ -3,7 +3,7 @@ import JoiDate from '@joi/date';
 
 const Joi = JoiBase.extend(JoiDate);
 
-export const reservasiSchema = Joi.object({
+const reservasiSchema = Joi.object({
     id : Joi.string().guid().optional().messages({
         'string.base': 'Id must be string',
         'string.guid': 'Id must be guid',
@@ -49,4 +49,19 @@ export const reservasiSchema = Joi.object({
         })).required().min(1).messages({
             'array.min': 'Menus must be min 1 item',
         }),
-    });
+    paymentMethod: Joi.string().valid('bank_transfer', 'other_qris').required(),
+    halfPayment: Joi.boolean().required(),     
+});
+
+const updateStatusReservasiSchema = Joi.object({
+    id: Joi.string().guid().required(),
+    status: Joi.string().valid('PROSES', 'SELESAI_DIBUAT').required(),
+});
+
+const cancelReservasiSchema = Joi.object({
+    id: Joi.string().guid().required(),
+});
+
+
+
+export { reservasiSchema, updateStatusReservasiSchema, cancelReservasiSchema };

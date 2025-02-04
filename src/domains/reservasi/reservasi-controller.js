@@ -10,35 +10,36 @@ class ReservasiController {
     return successResponse(res, data, total);
   }
 
+  async show(req, res) {
+    const { id } = req.params;
 
-  async createOrUpdate(req, res) {
-    // return createdResponse(res, "test");
+    const reservasi = await ReservasiServices.getById(id);
+
+    return successResponse(res, reservasi);
+  }
+
+  async create(req, res) {
     let data = req.body;
-    
-    if (data.id) {
-      const reservasi = await ReservasiServices.update(data.id, data);
-
-      return successResponse(res, reservasi);
-    }
     
     const reservasi = await ReservasiServices.create(data);
 
     return createdResponse(res, reservasi);
   }
 
-  async delete(req, res) {
-    const { id, permanent } = req.query;
+  async updateStatusReservasi(req, res) {
+    const { id, status } = req.body;
 
-    if (permanent === true || permanent === "true") {
-      console.log("coming here")
-      await ReservasiServices.deletePermanent(id);
+    const reservasi = await ReservasiServices.updateStatusReservasi(id, status);
 
-      return successResponse(res, "Reservasi deleted permanently");
-    }
-    // console.log("coming here")
-    await ReservasiServices.delete(id);
+    return successResponse(res, "Reservasi status updated successfully");
+  }
 
-    return successResponse(res, "Reservasi deleted successfully");
+  async cancelReservasi(req, res) {
+    const { id } = req.body;
+
+    const reservasi = await ReservasiServices.cancelReservasi(id);
+
+    return successResponse(res, "Reservasi Canceled successfully");
   }
 }
 
