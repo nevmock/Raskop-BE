@@ -67,7 +67,6 @@ model Reservasi {
   community         String
   phone_number      String
   note              String?           @db.Text
-  // status            String
   start             DateTime
   end               DateTime
   half_payment      Boolean          @default(false)
@@ -100,6 +99,7 @@ model Order {
   reservasi_id String?
   order_by     String
   phone_number String
+  status       String
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   deleted_at   DateTime?
@@ -130,16 +130,17 @@ model OrderDetail {
 }
 
 model Transaction {
-  id         String    @id @default(uuid())
-  trx_id     String?
-  order_id   String
-  gross_amount Float
-  payment_method String
-  admin_fee  Float
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
-  order      Order     @relation(fields: [order_id], references: [id])
+  id              String    @id @default(uuid())
+  trx_id          String?
+  order_id        String
+  gross_amount    Float
+  payment_method  String
+  admin_fee       Float
+  status          String
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  deleted_at      DateTime?
+  order           Order     @relation(fields: [order_id], references: [id])
 
   @@index([order_id], map: "transaction_order_id_fkey")
   @@map("transaction")
@@ -162,4 +163,13 @@ enum Unit {
   PIECE
   BOX
   BALL
+}
+
+enum OrderStatus {
+  MENUNGGU_PEMBAYARAN
+  MENUNGGU_PELUNASAN
+  BELUM_DIBUAT
+  PROSES
+  SELESAI_DIBUAT
+  CANCELED
 }

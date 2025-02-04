@@ -48,6 +48,8 @@ paths:
                     format: date-time
                   withDeleted:
                     type: boolean
+                  withRelation:
+                    type: boolean
               order:
                 type: array
                 items:
@@ -74,6 +76,7 @@ paths:
                 startDate: "2021-01-01T00:00:00.000Z"
                 endDate: "2021-12-31T23:59:59.999Z"
                 withDeleted: true
+                withRelation: true
               order:
                 - column: reserveBy
                   direction: ASC
@@ -155,7 +158,7 @@ paths:
     post:
       tags:
         - Reservasi
-      summary: Create or Update reservasi data
+      summary: Create reservasi data
       parameters:
       requestBody:
         required: true
@@ -237,18 +240,60 @@ paths:
                       quantity: 1
                     }
                   ]
-              Update Reservasi:
-                value:
-                  id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                  reserveBy: "Example"
-                  community: "Community 1"
-                  phoneNumber: "082333232322"
-                  note: "Tolong diantar ke rumah"
-                  start: "2021-01-01T00:00:00.000Z"
-                  end: "2021-01-01T00:00:00.000Z"
+      responses: 
+        201:
+          description: Reservasi data created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 201
+                  status:
+                    type: string
+                    example: "CREATED"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                          format: uuid
+                        redirectUrl:
+                          type: string
+                          example: "https://app.sandbox.midtrans.com/snap/v4/redirection/0ea12cbc-9ac3-4a5e-9c0a-4bc83520545f"
+                  errors: 
+                    type: NULL
+        400:
+          description: Bad request
+        500:
+          description: Internal server error
+
+  /reservasi/{id}:
+    get:
+      tags:
+        - Reservasi
+      summary: Get reservasi data by id
+      parameters:
+        - name: id
+          in: path
+          description: Reservasi id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "13087215-815c-4b98-b383-e57e0157eb7c"
       responses: 
         200:
-          description: Reservasi data updated
+          description: Success response
           content:
             application/json:
               schema:
@@ -266,76 +311,151 @@ paths:
                     format: int64
                     example: 1
                   data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        reserveBy:
-                          type: string
-                          minLength: 3
-                          maxLength: 150
-                        community:
-                          type: string
-                          minLength: 3
-                          maxLength: 12
-                        phoneNumber:
-                          type: string
-                          minLength: 3
-                          maxLength: 12
-                        note:
-                          type: string
-                        start:
-                          type: string
-                          format: date-time
-                        end:
-                          type: string
-                          format: date-time
-                        createdAt:
-                          type: string
-                          format: date-time
-                        updatedAt:
-                          type: string
-                          format: date-time
-                        deletedAt:
-                          type: string
-                          format: date-time
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      reserveBy:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      community:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      phoneNumber:
+                        type: string
+                        minLength: 3
+                        maxLength: 12
+                      note:
+                        type: string
+                      start:
+                        type: string
+                        example: "2021-01-01 12:30"
+                      end:
+                        type: string
+                        example: "2021-01-01 12:30"
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      deletedAt:
+                        type: string
+                        format: date-time
                   errors: 
                     type: NULL
-
-        201:
-          description: Reservasi data created
         404:
-          description: No reservasi data found
+          description: Reservasi data not found
         500:
           description: Internal server error
 
 
-    delete:
-      tags:
+  /reservasi/update-status:
+    post:
+      tags: 
         - Reservasi
-      summary: Delete reservasi data
-
-      parameters:
-        - name: id
-          in: query
-          description: ID of the reservasi
-          required: true
-          schema:
-            type: string
-        - name: permanent
-          in: query
-          description: Permanent delete
-          required: false
-          schema:
-            type: boolean
-
-      responses: 
+      summary: Update reservasi status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  required: true
+                status:
+                  type: string
+                  enum: [PROSES, SELESAI_DIBUAT]
+                  required: true
+              examples:
+                Status 1:
+                  value:
+                    id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                    status: "PROSES"
+                Status 2:
+                  value:
+                    id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                    status: "SELESAI_DIBUAT"
+      responses:
         200:
           description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: string
+                    example: "Reservasi status updated successfully"
+                  errors: 
+                    type: NULL
         404:
-          description: No reservasi data found
+          description: Reservasi data not found
+        500:
+          description: Internal server error
+
+  /reservasi/cancel:
+    post:
+      tags: 
+        - Reservasi
+      summary: Cancel reservasi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  required: true
+              examples:
+                value:
+                  id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                  status: "PROSES"
+      responses:
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: string
+                    example: "Reservasi Canceled successfully"
+                  errors: 
+                    type: NULL
+        404:
+          description: Reservasi data not found
         500:
           description: Internal server error

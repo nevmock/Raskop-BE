@@ -4,6 +4,8 @@ import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import ReservasiRepository from "./reservasi-repository.js";
 import TableRepository from "../table/table-repository.js";
 import MenuRepository from "../menu/menu-repository.js";
+import TransactionServices from "../transaction/transaction-services.js";
+import OrderRepository from "../order/order-repository.js";
 
 
 class ReservasiServices {
@@ -11,6 +13,8 @@ class ReservasiServices {
         this.ReservasiRepository = ReservasiRepository;
         this.TableRepository = TableRepository;
         this.MenuRepository = MenuRepository;
+        this.TransactionServices = TransactionServices;
+        this.OrderRepository = OrderRepository;
     }
     
     getAll = async (params = {}) => {
@@ -57,11 +61,32 @@ class ReservasiServices {
             [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
         })) : [];
 
+        const include = {
+            ...(advSearch && advSearch.withRelation) && {
+                detail_reservasis: {
+                    include: {
+                        table : true
+                    }
+                },
+                orders: {
+                    include: {
+                        order_detail : {
+                            include: {
+                                menu : true
+                            }
+                        },
+                        transaction: true
+                    }
+                },
+            }
+        }
+
         const filters = {
             where,
             orderBy,
             skip: start - 1,
             take: length,
+            include
         };
 
         let reservasis = await this.ReservasiRepository.get(filters);
@@ -86,146 +111,197 @@ class ReservasiServices {
     };
 
     create = async (data) => {
-        data = convertKeysToSnakeCase(data);
+        return await this.ReservasiRepository.withTransaction(async (tx) => {
+            data = convertKeysToSnakeCase(data);
 
-        data.start = new Date(data.start);
-        data.end = new Date(data.end);
+            data.start = new Date(data.start);
+            data.end = new Date(data.end);
 
-        let sumMinimumTableCapacity = 0;
-        let dataDetailReservasi = [];
+            let sumMinimumTableCapacity = 0;
+            let dataDetailReservasi = [];
 
-        for (const tableId of data.tables) {
-            const table = await this.TableRepository.getById(tableId);
-    
-            if (!table || table.deleted_at) {
-                throw BaseError.badRequest(`Table with id ${tableId} does not exist`);
-            }
-    
-            sumMinimumTableCapacity += table.min_capacity;
-
-            dataDetailReservasi.push({
-                table_id: table.id,
-            });
-        }
-
-        let sumTotalMenu = 0;
-        let dataOrders = {
-            order_by: data.reserve_by,
-            phone_number: data.phone_number,
-            order_detail: {
-                create: []
-            }
-        };
-
-        let menus = [];
+            for (const tableId of data.tables) {
+                const table = await tx.table.findUnique({
+                    where: {
+                        id: tableId,
+                    }
+                })
         
-        for (const menuItem of data.menus) {
-            const menu = await this.MenuRepository.getById(menuItem.id);
-    
-            if (!menu || menu.deleted_at) {
-                throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
-            }
-    
-            sumTotalMenu += 1;
+                if (!table || table.deleted_at) {
+                    throw BaseError.badRequest(`Table with id ${tableId} does not exist`);
+                }
 
-            dataOrders.order_detail.create.push({
-                menu_id: menu.id,
-                qty: menuItem.quantity,
-                price: menu.price,
-                note: menuItem.note
+                if (!table.is_active){
+                    throw BaseError.badRequest(`Table with id ${tableId} is not active`);
+                }
+
+                const bookedTable = await tx.detailReservasi.findMany({
+                    where: {
+                        table_id: tableId,
+                        reservasi: {
+                            start: {
+                                lte: data.end
+                            },
+                            end: {
+                                gte: data.start
+                            },
+                            deleted_at: null
+                        }
+                    }
+                })
+
+                if (bookedTable.length > 0){
+                    throw BaseError.badRequest(`Table with id ${tableId} is already booked`);       
+                }
+
+                sumMinimumTableCapacity += table.min_capacity;
+    
+                dataDetailReservasi.push({
+                    table_id: table.id,
+                });
+            }
+
+            let sumTotalMenu = 0;
+            let dataOrders = {
+                order_by: data.reserve_by,
+                phone_number: data.phone_number,
+                order_detail: {
+                    create: []                  
+                }
+            };
+
+            let menus = [];
+            // object prisma 
+            for (const menuItem of data.menus) {
+                let menu = await tx.menu.findUnique({
+                    where: {
+                        id: menuItem.id,
+                    }
+                });
+        
+                if (!menu || menu.deleted_at) {
+                    throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
+                }
+
+                if (!menu.is_active){
+                    throw BaseError.badRequest(`Menu with id ${menuItem.id} is not active`);
+                }
+
+                menu = await tx.menu.update({
+                    where: {
+                        id: menuItem.id,
+                    },
+                    data: {
+                        qty: {
+                            decrement: menuItem.quantity
+                        }
+                    }
+                });
+
+                if (menu.qty < 0){
+                    throw BaseError.badRequest(`Quantity Menu with id ${menuItem.id} is out of stock`);
+                }
+
+                sumTotalMenu += menuItem.quantity;
+
+                dataOrders.order_detail.create.push({
+                    menu_id: menu.id,
+                    qty: menuItem.quantity,
+                    price: menu.price,
+                    note: menuItem.note
+                });
+
+                menus.push(menu);
+            }
+
+            if (sumTotalMenu < sumMinimumTableCapacity){
+                throw BaseError.badRequest(`Total menu must be more than or equal to total table capacity`);
+            }
+
+            data.detail_reservasis = {
+                create : dataDetailReservasi
+            };
+
+            dataOrders.status = "MENUNGGU_PEMBAYARAN";
+
+            data.orders = {
+                create : dataOrders
+            };
+
+            let paymentMethod = data.payment_method;
+
+            delete data.tables;
+            delete data.menus;
+            delete data.payment_method;
+
+            // console.log(data)
+
+            let reservasi = await tx.reservasi.create({
+                data: data,
             });
 
-            menus.push(menu);
-        }
+            if (!reservasi){
+                throw Error("Failed to create reservasi");
+            }
+        
+            const order = await tx.order.findFirst({
+                where: {
+                    reservasi_id: reservasi.id,
+                },
+                select: {
+                    id: true
+                }
+            });
 
-        if (sumTotalMenu < sumMinimumTableCapacity){
-            throw BaseError.badRequest(`Total menu must be more than or equal to total table capacity`);
-        }
+            if (!order){
+                throw Error("Failed to find order");
+            }
 
-        data.detail_reservasis = {
-            create : dataDetailReservasi
-        };
+            let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod, data.half_payment);
 
-        data.orders = {
-            create : dataOrders
-        };
-
-        delete data.tables;
-        delete data.menus;
-
-        // return data;
-
-        // const authString = btoa(`${process.env.MIDTRANS_SERVER_KEY}:`);
-
-        // const midTransPayload = {
-        //     transaction_details: {
-        //         order_id: transaction_id,
-        //         gross_amount
-        //     },
-        //     item_details: menus.map((menu) => ({
-        //         id: menu.id,
-        //         price: menu.price,
-        //         quantity: menu.quantity,
-        //         name: menu.name,
-        //     })),
-        //     customer_details: {
-        //         first_name: customer_name,
-        //         email: customer_email
-        //     },
-        //     callbacks: {
-        //         finish: `${FRONT_END_URL}/order-status?transaction_id=${transaction_id}`,
-        //         error: `${FRONT_END_URL}/order-status?transaction_id=${transaction_id}`,
-        //         pending: `${FRONT_END_URL}/order-status?transaction_id=${transaction_id}`
-        //     }
-        // }
-
-        // return midTransPayload;
-
-        let reservasi = await this.ReservasiRepository.create(data);
-
-        reservasi = camelize(reservasi);
-
-        return reservasi;
+            return transaction;
+        })
+        
     }
 
-    update = async (id, data) => {
-        const isExist = await this.ReservasiRepository.getById(id);
-        if (!isExist) {
-            throw BaseError.notFound("Reservasi does not exist");
-        }
-        data = convertKeysToSnakeCase(data)
+    updateStatusReservasi = async (id, status) => {
+        const reservasi = await this.ReservasiRepository.getByIdWithRelation(id);
 
-        let reservasi = await this.ReservasiRepository.update(id, data);
-
-        reservasi = camelize(reservasi);
-
-        return reservasi;
-    }
-
-    delete = async (id) => {
-        const params = {
-            where: {
-                deleted_at: null,
-            },
-        }
-
-        const isExist = await this.ReservasiRepository.getById(id, params);
-
-        if (!isExist) {
+        if (!reservasi || reservasi.deleted_at) {
             throw BaseError.notFound("Reservasi does not exist");
         }
 
-        await this.ReservasiRepository.delete(id);
+        if (reservasi.orders[0].status != "BELUM_DIBUAT" && reservasi.orders[0].status != "PROSES"){
+            throw BaseError.badRequest("Reservasi status cannot be updated");
+        }
+
+        const updatedReservasi = await this.OrderRepository.update(reservasi.orders[0].id, { status : status });
+
+        if (!updatedReservasi){
+            throw Error("Failed to update reservasi status");
+        }
+
+        return updatedReservasi;
     }
 
-    deletePermanent = async (id) => {
-        const isExist = await this.ReservasiRepository.getById(id);
+    cancelReservasi = async (id) => {
+        const reservasi = await this.ReservasiRepository.getByIdWithRelation(id);
 
-        if (!isExist || isExist.deleted_at) {
+        if (!reservasi || reservasi.deleted_at) {
             throw BaseError.notFound("Reservasi does not exist");
         }
 
-        await this.ReservasiRepository.deletePermanent(id);
+        if (reservasi.orders[0].status != "MENUNGGU_PELUNASAN" && reservasi.orders[0].status != "BELUM_DIBUAT"){
+            throw BaseError.badRequest("Reservasi cannot be cancelled");
+        }
+
+        const updatedReservasi = await this.OrderRepository.update(reservasi.orders[0].id, { status: "CANCELED" });
+
+        if (!updatedReservasi){
+            throw Error("Failed to cancel reservasi");
+        }
+
+        return updatedReservasi;
     }
   }
   

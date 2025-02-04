@@ -19,6 +19,52 @@ class OrderRepository extends BaseRepository {
 
     return await super.update(id, filteredData);
   }
+
+  async deleteWithRelation(id) {
+    return await db.order.update({
+      where: {
+        id: id,
+      },
+      data: {
+        deleted_at: new Date(),
+        order_detail: {
+          updateMany: {
+            where: {
+              order_id: id,
+            },
+            data: {
+              deleted_at: new Date(),
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getByIdWithRelation(id){
+    return await db.order.findUnique({
+      where: {
+        id: id
+      },
+      include:{
+          reservasi: {
+            include : {
+              detail_reservasis: {
+                include: {
+                    table : true
+                }
+              }
+            }
+          },
+          transaction: true,
+          order_detail : {
+              include: {
+                  menu : true
+              }
+          }, 
+      }
+    })
+}
 }
 
 export default new OrderRepository();

@@ -9,17 +9,20 @@ import errorHandler from "./middlewares/error-handler-middleware.js";
 import express from "express";
 import helmet from "helmet";
 import logger from "./utils/logger.js";
-import menuRoutes from "./domains/menu/menu-routes.js";
 import morgan from "morgan";
 import multer from "multer";
-import orderDetailRoutes from "./domains/orderDetail/orderDetail-routes.js";
-import orderRoutes from "./domains/order/order-routes.js";
 import path from "path";
+
+import menuRoutes from "./domains/menu/menu-routes.js";
+import orderRoutes from "./domains/order/order-routes.js";
+import orderDetailRoutes from "./domains/orderDetail/orderDetail-routes.js";
 import reservasiRoutes from "./domains/reservasi/reservasi-routes.js";
 import supplierRoutes from "./domains/supplier/supplier-routes.js";
 import swaggerSpec from "./utils/swagger.js";
 import swaggerUi from "swagger-ui-express";
 import tableRoutes from "./domains/table/table-routes.js";
+import transactionRoutes from "./domains/transaction/transaction-routes.js";
+import BaseError from "./base_classes/base-error.js";
 
 class ExpressApplication {
   app;
@@ -73,10 +76,6 @@ class ExpressApplication {
         fileFilter: this.fileFilter,
       }).fields([
         {
-          name: "profile_picture",
-          maxCount: 1,
-        },
-        {
           name: "image",
           maxCount: 1,
         },
@@ -97,7 +96,12 @@ class ExpressApplication {
     this.app.use("/api/v1/order", orderRoutes);
     this.app.use("/api/v1/order-detail", orderDetailRoutes);
 
+    this.app.use("/api/v1/transaction", transactionRoutes);
+
     this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    this.app.use("/*", () => {
+      throw BaseError.notFound("Route not found");
+    });
   }
 
   configureAssets() {

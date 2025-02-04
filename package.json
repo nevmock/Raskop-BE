@@ -16,6 +16,9 @@
     "build": "npm i && npx prisma generate && npx prisma migrate deploy && npx babel src --out-dir dist --extensions \".js,.jsx\"",
     "swagger": "node ./src/utils/swagger.js"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@joi/date": "^2.1.1",
     "@prisma/client": "^5.22.0",

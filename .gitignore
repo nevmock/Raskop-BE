@@ -14,3 +14,5 @@ dist
 # Assets
 /public/images/menu
 /public/images/table
+
+/prisma/seed.js

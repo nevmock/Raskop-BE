@@ -68,8 +68,6 @@ class MenuServices {
         }),
     };
 
-    console.log(where)
-
     const orderBy = Array.isArray(order) ? order.map(o => ({
         [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
     })) : [];
@@ -153,7 +151,7 @@ class MenuServices {
   deletePermanent = async (id) => {
     const isExist = await this.MenuRepository.getById(id, { include : { order_details : true }});
 
-    console.log(isExist)
+    // console.log(isExist)
 
     if (!isExist) {
       throw BaseError.notFound("Menu does not exist");
