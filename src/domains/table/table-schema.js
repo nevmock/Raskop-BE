@@ -1,4 +1,7 @@
-import Joi from "joi";
+import JoiBase from "joi";
+import JoiDate from "@joi/date";
+
+const Joi = JoiBase.extend(JoiDate);
 
 export const tableSchema = Joi.object({
   id: Joi.string().guid().optional().messages({
@@ -44,4 +47,17 @@ export const tableSchema = Joi.object({
       "array.items": "Each item in merged available must be a valid UUID",
       "any.invalid": "Merged available cannot include its own ID",
     }),
+});
+
+export const tableSuggestionSchema = Joi.object({
+  capacity: Joi.number().integer().min(0).required().messages({
+    "number.base": "Capacity must be number",
+    "number.min": "Capacity must be greater than 0",
+  }),
+  start: Joi.date().format("YYYY-MM-DD HH:mm").required().messages({
+    "date.base": "Start must be date",
+  }),
+  end: Joi.date().format("YYYY-MM-DD HH:mm").greater(Joi.ref("start")).required().messages({
+    "date.base": "End must be date",
+  }),
 });
