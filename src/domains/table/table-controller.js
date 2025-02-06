@@ -54,6 +54,14 @@ class TableController {
 
     return successResponse(res, "Table deleted successfully");
   }
+
+  async suggestion(req, res) {
+    let inputData = req.body;
+
+    const data = await TableServices.suggestion(inputData);
+
+    return successResponse(res, data);
+  }
 }
 
 export default new TableController();

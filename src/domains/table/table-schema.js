@@ -1,4 +1,7 @@
-import Joi from "joi";
+import JoiBase from "joi";
+import JoiDate from "@joi/date";
+
+const Joi = JoiBase.extend(JoiDate);
 
 export const tableSchema = Joi.object({
   id: Joi.string().guid().optional().messages({
@@ -44,4 +47,27 @@ export const tableSchema = Joi.object({
       "array.items": "Each item in merged available must be a valid UUID",
       "any.invalid": "Merged available cannot include its own ID",
     }),
+});
+
+export const tableSuggestionSchema = Joi.object({
+  capacity: Joi.number().integer().min(1).required().messages({
+    "number.base": "Capacity must be a number",
+    "number.min": "Capacity must be greater than 0",
+  }),
+  isOutdoor: Joi.boolean().required().messages({
+    "boolean.base": "Is outdoor must be boolean",
+  }),
+  date: Joi.date().required().messages({
+    "date.base": "Date must be a valid date",
+    "date.empty": "Date is required",
+  }),
+  startTime: Joi.date().format("HH:mm:ss").required().messages({
+    "date.base": "Start time must be a valid date",
+    "date.empty": "Start time is required",
+  }),
+  endTime: Joi.date().format("HH:mm:ss").greater(Joi.ref("startTime")).required().messages({
+    "date.base": "End time must be a valid date",
+    "date.empty": "End time is required",
+    "date.greater": "End time must be greater than start time",
+  }),
 });

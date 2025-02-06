@@ -1,3 +1,4 @@
+import db from "../../utils/prisma.js";
 import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
@@ -111,6 +112,21 @@ class TableServices {
 
     let table = await this.TableRepository.create(data);
 
+    if (data.merged_available && data.merged_available.length > 0) {
+      await Promise.all(
+        data.merged_available.map(async (tableId) => {
+          const isIdTableExist = await TableRepository.getById(tableId);
+          const mergedAvailable = isIdTableExist.merged_available || [];
+
+          if (!mergedAvailable.includes(table.id)) {
+            mergedAvailable.push(table.id);
+            isIdTableExist.merged_available = mergedAvailable;
+            await TableRepository.update(tableId, isIdTableExist);
+          }
+        })
+      );
+    }
+
     table = camelize(table);
 
     return table;
@@ -131,16 +147,37 @@ class TableServices {
       throw BaseError.badRequest("No Table already exist");
     }
 
-    if (data.merged_available && data.merged_available.length > 0) {
-      await Promise.all(
-        data.merged_available.map(async (tableId) => {
+    if (data.merged_available) {
+      if (data.merged_available.length > 0) {
+        await Promise.all(
+          data.merged_available.map(async (tableId) => {
+            const isIdTableExist = await TableRepository.getById(tableId);
+            if (!isIdTableExist) {
+              deleteFileIfExists(data.image_uri);
+              throw BaseError.badRequest(`Id Table ${tableId} does not exist`);
+            } else {
+              const mergedAvailable = isIdTableExist.merged_available || [];
+
+              if (!mergedAvailable.includes(data.id)) {
+                mergedAvailable.push(data.id);
+                isIdTableExist.merged_available = mergedAvailable;
+                await TableRepository.update(tableId, isIdTableExist);
+              }
+            }
+          })
+        );
+      } else {
+        const currentMergedAvailable = isExist.merged_available || [];
+        for (const tableId of currentMergedAvailable) {
           const isIdTableExist = await TableRepository.getById(tableId);
-          if (!isIdTableExist) {
-            deleteFileIfExists(data.image_uri);
-            throw BaseError.badRequest(`Id Table ${tableId} does not exist`);
+          if (isIdTableExist) {
+            const mergedAvailable = isIdTableExist.merged_available || [];
+            const updatedMergedAvailable = mergedAvailable.filter((id) => id !== isExist.id);
+            isIdTableExist.merged_available = updatedMergedAvailable;
+            await TableRepository.update(tableId, isIdTableExist);
           }
-        })
-      );
+        }
+      }
     }
 
     if (file && isExist.image_uri) {
@@ -189,8 +226,13 @@ class TableServices {
 
     const tablesUsingThisId = await this.TableRepository.findAllWithMergedAvailable(isExist.id);
     if (tablesUsingThisId.length > 0) {
-      throw BaseError.badRequest(
-        "Table cannot be deleted permanently because there are merged available that use this Table"
+      await Promise.all(
+        tablesUsingThisId.map(async (table) => {
+          const mergedAvailable = table.merged_available || [];
+          const updatedMergedAvailable = mergedAvailable.filter((mergedId) => mergedId !== id);
+          table.merged_available = updatedMergedAvailable;
+          await this.TableRepository.update(table.id, table);
+        })
       );
     }
 
@@ -199,6 +241,106 @@ class TableServices {
     }
 
     await this.TableRepository.deletePermanent(id);
+  };
+
+  suggestion = async (inputData) => {
+    let { data } = await this.TableRepository.get({
+      where: {
+        ...(inputData && {
+          ...(inputData.isOutdoor !== undefined && { is_outdoor: inputData.isOutdoor }),
+          ...{ is_active: true },
+        }),
+      },
+    });
+
+    const startDateString = `${inputData.date}T${inputData.startTime}`;
+    const endDateString = `${inputData.date}T${inputData.endTime}`;
+    const startDate = new Date(startDateString);
+    const endDate = new Date(endDateString);
+
+    const availableTables = [];
+    for (const item of data) {
+      const table = await db.table.findUnique({
+        where: {
+          id: item.id,
+          deleted_at: null,
+          is_active: true,
+          is_outdoor: inputData.isOutdoor,
+        },
+      });
+
+      if (table) {
+        const bookedTable = await db.detailReservasi.findMany({
+          where: {
+            table_id: table.id,
+            reservasi: {
+              start: {
+                lte: endDate,
+              },
+              end: {
+                gte: startDate,
+              },
+              deleted_at: null,
+            },
+          },
+        });
+
+        if (bookedTable.length === 0) {
+          availableTables.push(table);
+        }
+      }
+    }
+
+    let tables = [];
+
+    availableTables.forEach((table) => {
+      if (inputData.capacity >= table.min_capacity && inputData.capacity <= table.max_capacity) {
+        tables.push(table);
+      }
+    });
+
+    function findValidCombinations(data, capacity) {
+      const result = new Set();
+
+      function generateCombinations(current, remaining, currentMin, currentMax) {
+        if (current.length >= 2 && currentMin <= capacity && capacity <= currentMax) {
+          // Convert current array of objects to a sorted string representation for uniqueness
+          const combination = JSON.stringify(current.sort((a, b) => a.id.localeCompare(b.id)));
+          result.add(combination);
+        }
+
+        for (let i = 0; i < remaining.length; i++) {
+          const next = remaining[i];
+          if (current.some((item) => item.id === next.id)) continue; // Check if already included
+          if (!current.every((item) => next.merged_available?.includes(item.id))) continue; // Check allowed combinations
+
+          generateCombinations(
+            [...current, next], // Add the entire object
+            remaining.filter((_, index) => index > i), // Filter remaining
+            currentMin + next.min_capacity,
+            currentMax + next.max_capacity
+          );
+        }
+      }
+
+      for (let i = 0; i < data.length; i++) {
+        generateCombinations(
+          [data[i]],
+          data.filter((_, index) => index !== i),
+          data[i].min_capacity,
+          data[i].max_capacity
+        );
+      }
+
+      return Array.from(result).map((combination) => JSON.parse(combination));
+    }
+
+    const mergedTables = findValidCombinations(availableTables, inputData.capacity);
+
+    return {
+      tables: tables,
+      mergedTables: mergedTables,
+    };
   };
 }
 
