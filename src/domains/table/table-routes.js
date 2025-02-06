@@ -9,7 +9,7 @@ class TableRoutes extends BaseRoutes {
   routes() {
     this.router.get("/", [tryCatch(TableController.index)]);
 
-    this.router.get("/suggestion", [validateCredentials(tableSuggestionSchema), tryCatch(TableController.suggestion)]);
+    this.router.post("/suggestion", [validateCredentials(tableSuggestionSchema), tryCatch(TableController.suggestion)]);
 
     this.router.get("/:id", [tryCatch(TableController.show)]);
 
