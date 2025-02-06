@@ -50,14 +50,24 @@ export const tableSchema = Joi.object({
 });
 
 export const tableSuggestionSchema = Joi.object({
-  capacity: Joi.number().integer().min(0).required().messages({
-    "number.base": "Capacity must be number",
+  capacity: Joi.number().integer().min(1).required().messages({
+    "number.base": "Capacity must be a number",
     "number.min": "Capacity must be greater than 0",
   }),
-  start: Joi.date().format("YYYY-MM-DD HH:mm").required().messages({
-    "date.base": "Start must be date",
+  isOutdoor: Joi.boolean().required().messages({
+    "boolean.base": "Is outdoor must be boolean",
   }),
-  end: Joi.date().format("YYYY-MM-DD HH:mm").greater(Joi.ref("start")).required().messages({
-    "date.base": "End must be date",
+  date: Joi.date().required().messages({
+    "date.base": "Date must be a valid date",
+    "date.empty": "Date is required",
+  }),
+  startTime: Joi.date().format("HH:mm:ss").required().messages({
+    "date.base": "Start time must be a valid date",
+    "date.empty": "Start time is required",
+  }),
+  endTime: Joi.date().format("HH:mm:ss").greater(Joi.ref("startTime")).required().messages({
+    "date.base": "End time must be a valid date",
+    "date.empty": "End time is required",
+    "date.greater": "End time must be greater than start time",
   }),
 });

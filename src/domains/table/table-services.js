@@ -1,3 +1,4 @@
+import db from "../../utils/prisma.js";
 import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
@@ -243,10 +244,56 @@ class TableServices {
   };
 
   suggestion = async (inputData) => {
-    let { data } = await this.TableRepository.get();
+    let { data } = await this.TableRepository.get({
+      where: {
+        ...(inputData && {
+          ...(inputData.isOutdoor !== undefined && { is_outdoor: inputData.isOutdoor }),
+          ...{ is_active: true },
+        }),
+      },
+    });
+
+    const startDateString = `${inputData.date}T${inputData.startTime}`;
+    const endDateString = `${inputData.date}T${inputData.endTime}`;
+    const startDate = new Date(startDateString);
+    const endDate = new Date(endDateString);
+
+    const availableTables = [];
+    for (const item of data) {
+      const table = await db.table.findUnique({
+        where: {
+          id: item.id,
+          deleted_at: null,
+          is_active: true,
+          is_outdoor: inputData.isOutdoor,
+        },
+      });
+
+      if (table) {
+        const bookedTable = await db.detailReservasi.findMany({
+          where: {
+            table_id: table.id,
+            reservasi: {
+              start: {
+                lte: endDate,
+              },
+              end: {
+                gte: startDate,
+              },
+              deleted_at: null,
+            },
+          },
+        });
+
+        if (bookedTable.length === 0) {
+          availableTables.push(table);
+        }
+      }
+    }
+
     let tables = [];
 
-    data.forEach((table) => {
+    availableTables.forEach((table) => {
       if (inputData.capacity >= table.min_capacity && inputData.capacity <= table.max_capacity) {
         tables.push(table);
       }
@@ -288,7 +335,7 @@ class TableServices {
       return Array.from(result).map((combination) => JSON.parse(combination));
     }
 
-    const mergedTables = findValidCombinations(data, inputData.capacity);
+    const mergedTables = findValidCombinations(availableTables, inputData.capacity);
 
     return {
       tables: tables,
