@@ -70,6 +70,14 @@ class OrderServices {
   };
 
   create = async (data) => {
+    if (data.id) {
+      throw BaseError.badRequest("Id is not allowed!");
+    }
+
+    if (!data.status || (data.status && data.status.length === 0)) {
+      data.status = "MENUNGGU_PEMBAYARAN";
+    }
+
     data = convertKeysToSnakeCase(data);
 
     let order = await this.OrderRepository.create(data);
