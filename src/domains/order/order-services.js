@@ -2,10 +2,12 @@ import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import OrderRepository from "./order-repository.js";
+import reservasiRepository from "../reservasi/reservasi-repository.js";
 
 class OrderServices {
   constructor() {
     this.OrderRepository = OrderRepository;
+    this.ReservasiRepository = reservasiRepository;
   }
 
   async getAll(params = {}) {
@@ -78,6 +80,14 @@ class OrderServices {
       data.status = "MENUNGGU_PEMBAYARAN";
     }
 
+    if (data.reservasiId) {
+      const isReservationExist = await this.ReservasiRepository.getById(data.reservasiId);
+
+      if (!isReservationExist) {
+        throw BaseError.notFound("Reservation does not exist");
+      }
+    }
+
     data = convertKeysToSnakeCase(data);
 
     let order = await this.OrderRepository.create(data);
@@ -92,6 +102,14 @@ class OrderServices {
 
     if (!isExist) {
       throw BaseError.notFound("Order does not exist");
+    }
+
+    if (data.reservasiId) {
+      const isReservationExist = await this.ReservasiRepository.getById(data.reservasiId);
+
+      if (!isReservationExist) {
+        throw BaseError.notFound("Reservation does not exist");
+      }
     }
 
     data = convertKeysToSnakeCase(data);

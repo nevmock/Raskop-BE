@@ -25,7 +25,7 @@ export const orderSchema = Joi.object({
     "string.max": "Phone Number must be max 12 character",
   }),
 
-  reservationId: Joi.string().guid().optional().messages({
+  reservasiId: Joi.string().guid().optional().messages({
     "string.base": "Reservation Id must be string",
     "string.guid": "Reservation Id must be guid",
   }),
