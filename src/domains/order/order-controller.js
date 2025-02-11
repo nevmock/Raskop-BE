@@ -10,6 +10,18 @@ class OrderController {
     return successResponse(res, data, total);
   }
 
+  async show(req, res) {
+    const { id } = req.params;
+
+    if (!id) {
+      throw BaseError.badRequest("ID is required");
+    }
+
+    const order = await OrderServices.getById(id);
+
+    return successResponse(res, order);
+  }
+
   async createOrUpdate(req, res) {
     let data = req.body;
 
