@@ -3,6 +3,7 @@ import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import OrderRepository from "./order-repository.js";
 import reservasiRepository from "../reservasi/reservasi-repository.js";
+import { snakeCase } from "change-case";
 
 class OrderServices {
   constructor() {
@@ -24,10 +25,11 @@ class OrderServices {
         OR: [{ order_by: { contains: search } }, { phone_number: { contains: search } }],
       }),
       ...(advSearch && {
-        ...(advSearch.orderBy && { reserve_by: { contains: advSearch.orderBy } }),
+        ...(advSearch.orderBy && { order_by: { contains: advSearch.orderBy } }),
         ...(advSearch.phoneNumber && { phone_number: advSearch.phoneNumber }),
         ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
         ...(advSearch.id && { id: advSearch.id }),
+        ...(advSearch.status && { status: advSearch.status }),
         ...((advSearch.startDate || advSearch.endDate) && {
           created_at: {
             ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
