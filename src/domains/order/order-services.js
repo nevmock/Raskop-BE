@@ -43,11 +43,33 @@ class OrderServices {
         }))
       : [];
 
+    const include = {
+      ...(advSearch &&
+        advSearch.withRelation && {
+          reservasi: {
+            include: {
+              detail_reservasis: {
+                include: {
+                  table: true,
+                },
+              },
+            },
+          },
+          transaction: true,
+          order_detail: {
+            include: {
+              menu: true,
+            },
+          },
+        }),
+    };
+
     const filters = {
       where,
       orderBy,
       skip: start - 1,
       take: length,
+      include,
     };
 
     let orders = await this.OrderRepository.get(filters);
@@ -57,10 +79,8 @@ class OrderServices {
     return orders;
   }
 
-  getById = async (id, params = {}) => {
-    let order = await this.OrderRepository.getById(id, {
-      ...params,
-    });
+  getById = async (id) => {
+    let order = await this.OrderRepository.getByIdWithRelation(id);
 
     if (!order) {
       throw BaseError.notFound("Order does not exist");
@@ -134,14 +154,18 @@ class OrderServices {
       throw BaseError.notFound("Order does not exist");
     }
 
-    await this.OrderRepository.delete(id);
+    await this.OrderRepository.deleteWithRelation(id);
   };
 
   deletePermanent = async (id) => {
     const isExist = await this.OrderRepository.getById(id);
 
-    if (!isExist || isExist.deleted_at) {
+    if (!isExist) {
       throw BaseError.notFound("Order does not exist");
+    }
+
+    if (!isExist.deleted_at) {
+      throw BaseError.badRequest("Order is not deleted yet");
     }
 
     await this.OrderRepository.deletePermanent(id);
