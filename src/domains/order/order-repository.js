@@ -41,30 +41,44 @@ class OrderRepository extends BaseRepository {
     });
   }
 
-  async getByIdWithRelation(id){
+  async getByIdWithRelation(id) {
     return await db.order.findUnique({
       where: {
-        id: id
+        id: id,
       },
-      include:{
-          reservasi: {
-            include : {
-              detail_reservasis: {
-                include: {
-                    table : true
-                }
-              }
-            }
-          },
-          transaction: true,
-          order_detail : {
+      include: {
+        reservasi: {
+          include: {
+            detail_reservasis: {
               include: {
-                  menu : true
-              }
-          }, 
-      }
-    })
-}
+                table: true,
+              },
+            },
+          },
+        },
+        transaction: true,
+        order_detail: {
+          include: {
+            menu: true,
+          },
+        },
+      },
+    });
+  }
+
+  async deletePermanent(id) {
+    await db.orderDetail.deleteMany({
+      where: { order_id: id },
+    });
+
+    await db.transaction.deleteMany({
+      where: { order_id: id },
+    });
+
+    return await db.order.delete({
+      where: { id: id },
+    });
+  }
 }
 
 export default new OrderRepository();

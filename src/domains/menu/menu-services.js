@@ -1,6 +1,5 @@
 import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
-import statusCodes from "../../errors/status-codes.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import MenuRepository from "./menu-repository.js";
 import { deleteFileIfExists } from "../../utils/delete-file.js";
@@ -12,71 +11,62 @@ class MenuServices {
   }
 
   async getAll(params = {}) {
-    let {
-      start = 1,
-      length = 10,
-      search = '',
-      advSearch,
-      order,
-    } = params;
+    let { start = 1, length = 10, search = "", advSearch, order } = params;
 
     start = JSON.parse(start);
     length = JSON.parse(length);
 
-    advSearch = (advSearch) ? JSON.parse(advSearch) : null;
-    order = (order) ? JSON.parse(order) : null;
+    advSearch = advSearch ? JSON.parse(advSearch) : null;
+    order = order ? JSON.parse(order) : null;
 
     const where = {
-        ...(search && {
-            OR: [
-                { name: { contains: search } },
-                { description: { contains: search } },
-                { category: { contains: search } },
-            ],
+      ...(search && {
+        OR: [{ name: { contains: search } }, { description: { contains: search } }, { category: { contains: search } }],
+      }),
+      ...(advSearch && {
+        ...(advSearch.id && { id: { contains: advSearch.id } }),
+        ...(advSearch.name && { name: { contains: advSearch.name } }),
+        ...(advSearch.price && { price: advSearch.price }),
+        ...(advSearch.description && { description: { contains: advSearch.description } }),
+        ...(advSearch.category && { category: { contains: advSearch.category } }),
+        ...(advSearch.qty && { qty: advSearch.qty }),
+        ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
+
+        ...((advSearch.minQty || advSearch.maxQty) && {
+          qty: {
+            ...(advSearch.minQty && { gte: advSearch.minQty }),
+            ...(advSearch.maxQty && { lte: advSearch.maxQty }),
+          },
         }),
-        ...(advSearch && {
-          ...(advSearch.id && { id: { contains: advSearch.id }}),
-          ...(advSearch.name && { name: { contains: advSearch.name } }),
-          ...(advSearch.price && { price: advSearch.price }),
-          ...(advSearch.description && { description: { contains: advSearch.description } }),
-          ...(advSearch.category && { category: { contains: advSearch.category } }),
-          ...(advSearch.qty && { qty: advSearch.qty }),
-          ...(advSearch.isActive !== undefined && { is_active: advSearch.isActive }),
 
-          ...((advSearch.minQty || advSearch.maxQty) && {
-            qty: {
-                ...(advSearch.minQty && { gte: advSearch.minQty }),
-                ...(advSearch.maxQty && { lte: advSearch.maxQty }),
-            },
-          }),
-
-          ...((advSearch.minPrice || advSearch.maxPrice) && {
-            price: {
-                ...(advSearch.minPrice && { gte: advSearch.minPrice }),
-                ...(advSearch.maxPrice && { lte: advSearch.maxPrice }),
-            },
-          }),
-
-
-          ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
-          ...((advSearch.startDate || advSearch.endDate) && {
-              created_at: {
-                  ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
-                  ...(advSearch.endDate && { lte: new Date(advSearch.endDate) }),
-              },
-          }),
+        ...((advSearch.minPrice || advSearch.maxPrice) && {
+          price: {
+            ...(advSearch.minPrice && { gte: advSearch.minPrice }),
+            ...(advSearch.maxPrice && { lte: advSearch.maxPrice }),
+          },
         }),
+
+        ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
+        ...((advSearch.startDate || advSearch.endDate) && {
+          created_at: {
+            ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
+            ...(advSearch.endDate && { lte: new Date(advSearch.endDate) }),
+          },
+        }),
+      }),
     };
 
-    const orderBy = Array.isArray(order) ? order.map(o => ({
-        [snakeCase(o.column)]: o.direction.toLowerCase() === 'asc' ? 'asc' : 'desc',
-    })) : [];
+    const orderBy = Array.isArray(order)
+      ? order.map((o) => ({
+          [snakeCase(o.column)]: o.direction.toLowerCase() === "asc" ? "asc" : "desc",
+        }))
+      : [];
 
     const filters = {
-        where,
-        orderBy,
-        skip: start - 1,
-        take: length,
+      where,
+      orderBy,
+      skip: start - 1,
+      take: length,
     };
 
     let menus = await this.MenuRepository.get(filters);
@@ -101,6 +91,10 @@ class MenuServices {
   };
 
   create = async (data) => {
+    if (data.id) {
+      throw BaseError.badRequest("Id is not allowed!");
+    }
+
     data = convertKeysToSnakeCase(data);
 
     let menu = await this.MenuRepository.create(data);
@@ -149,7 +143,7 @@ class MenuServices {
   };
 
   deletePermanent = async (id) => {
-    const isExist = await this.MenuRepository.getById(id, { include : { order_details : true }});
+    const isExist = await this.MenuRepository.getById(id, { include: { order_details: true } });
 
     // console.log(isExist)
 

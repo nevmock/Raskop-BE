@@ -1,6 +1,5 @@
 import MenuServices from "./menu-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
-import { snakeCase } from "change-case";
 import { __dirname } from "../../utils/path.js";
 import { menuSchema } from "./menu-schema.js";
 import { deleteFileIfExists } from "../../utils/delete-file.js";
@@ -14,7 +13,7 @@ class MenuController {
     return successResponse(res, data, total);
   }
 
-  async show(req, res){
+  async show(req, res) {
     const { id } = req.params;
 
     const menu = await MenuServices.getById(id);
@@ -48,10 +47,10 @@ class MenuController {
       if (data.id) {
         const menu = await MenuServices.update(data.id, data, req.file);
         return successResponse(res, menu);
+      } else {
+        const menu = await MenuServices.create(data);
+        return createdResponse(res, menu);
       }
-
-      const menu = await MenuServices.create(data);
-      return createdResponse(res, menu);
     } catch (err) {
       if (req.file) {
         deleteFileIfExists(req.file.filename);
