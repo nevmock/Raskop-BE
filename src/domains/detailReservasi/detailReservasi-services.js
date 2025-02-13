@@ -6,6 +6,7 @@ import TableRepository from "../table/table-repository.js";
 import MenuRepository from "../menu/menu-repository.js";
 import TransactionServices from "../transaction/transaction-services.js";
 import OrderRepository from "../order/order-repository.js";
+import { snakeCase } from "change-case";
 
 
 class ReservasiServices {
@@ -42,10 +43,8 @@ class ReservasiServices {
                 ],
             }),
             ...(advSearch && {
-                ...(advSearch.reserveBy && { reserve_by: { contains: advSearch.reserveBy } }),
-                ...(advSearch.community && { community: advSearch.community }),
-                ...(advSearch.phoneNumber && { phone_number: advSearch.phoneNumber }),
-                ...(advSearch.note && { note: { contains: advSearch.note } }),
+                ...(advSearch.reservasiId && { reservasi_id: { contains: advSearch.reservasiId } }),
+                ...(advSearch.tableId && { table_id: { contains: advSearch.tableId }}),
                 ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
                 ...(advSearch.id && { id: advSearch.id }),
                 ...((advSearch.startDate || advSearch.endDate) && {
@@ -63,21 +62,21 @@ class ReservasiServices {
 
         const include = {
             ...(advSearch && advSearch.withRelation) && {
-                detail_reservasis: {
+                reservasi: {
                     include: {
-                        table : true
-                    }
-                },
-                orders: {
-                    include: {
-                        order_detail : {
+                        orders: {
                             include: {
-                                menu : true
+                                order_detail: {
+                                    include: {
+                                        menu: true
+                                    }
+                                },
+                                transaction: true
                             }
-                        },
-                        transaction: true
+                        }
                     }
                 },
+                table: true,
             }
         }
 
@@ -101,10 +100,8 @@ class ReservasiServices {
             ...params,
         });
 
-        
-
         if (!reservasi) {
-            throw BaseError.notFound("Reservasi does not exist");
+            throw BaseError.notFound("Detail Reservasi does not exist");
         }
     
         reservasi = camelize(reservasi);

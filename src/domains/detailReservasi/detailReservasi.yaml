@@ -1,5 +1,5 @@
 paths:
-  /reservasi: 
+  /detail-reservasi: 
     get:             
       tags:
         - DetailReservasi
@@ -26,20 +26,10 @@ paths:
                 properties:
                   id:
                     type: string
-                  reserveBy:
+                  reservasiId:
                     type: string
-                  community:
+                  tableId:
                     type: string
-                  phoneNumber:
-                    type: string
-                  note:
-                    type: string
-                  start:
-                    type: string
-                    format: date-time
-                  end:
-                    type: string
-                    format: date-time
                   startDate:
                     type: string
                     format: date-time
@@ -57,7 +47,7 @@ paths:
                   properties:
                     column:
                       type: string
-                      enum: [reserveBy, community, phone_number, note, start, end, createdAt, updatedAt]
+                      enum: [id, reservasiId, tableId, createdAt, updatedAt]
                     direction:
                       type: string
                       enum: [ASC, DESC]
@@ -67,33 +57,23 @@ paths:
               search: "Reservasi 1"
               advSearch:
                 id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                reserveBy: "Example"
-                community: "Community 1"
-                phoneNumber: "082333232322"
-                note: "Tolong diantar ke rumah"
-                start: "2021-01-01T00:00:00.000Z"
-                end: "2021-01-01T00:00:00.000Z"
+                reservasiId: "Example"
+                tableId: "Community 1"
                 startDate: "2021-01-01T00:00:00.000Z"
                 endDate: "2021-12-31T23:59:59.999Z"
                 withDeleted: true
                 withRelation: true
               order:
-                - column: reserveBy
+                - column: id
                   direction: ASC
-                - column: community
+                - column: reservasiId
                   direction: DESC
-                - column: phone_number
+                - column: tableId
                   direction: ASC
-                - column: note
-                  direction: DESC
-                - column: start
-                  direction: ASC
-                - column: end
-                  direction: DESC
                 - column: createdAt
-                  direction: ASC
-                - column: updatedAt
                   direction: DESC
+                - column: updatedAt
+                  direction: ASC
 
       responses: 
         200:
@@ -122,26 +102,14 @@ paths:
                         id:
                           type: string
                           format: uuid
-                        reserveBy:
+                        reservasiId:
                           type: string
                           minLength: 3
                           maxLength: 150
-                        community:
+                        tableId:
                           type: string
                           minLength: 3
                           maxLength: 150
-                        phoneNumber:
-                          type: string
-                          minLength: 3
-                          maxLength: 12
-                        note:
-                          type: string
-                        start:
-                          type: string
-                          example: "2021-01-01 12:30"
-                        end:
-                          type: string
-                          example: "2021-01-01 12:30"
                         createdAt:
                           type: string
                           format: date-time
@@ -155,141 +123,16 @@ paths:
                     type: NULL
         500:
           description: Internal server error
-    post:
-      tags:
-        - Reservasi
-      summary: Create reservasi data
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reserveBy:
-                  type: string
-                  required: true
-                  minLength: 3
-                  maxLength: 150
-                community:
-                  type: string
-                  format: 
-                  required: true
-                  minLength: 3
-                  maxLength: 150
-                phoneNumber:
-                  type: string
-                  format: 
-                  required: true
-                  minLength: 3
-                  maxLength: 12
-                note:
-                  type: string
-                  format: 
-                  required: false
-                  minLength: 3
-                  maxLength: 1500
-                start:
-                  type: string
-                  required: true
-                end:
-                  type: string
-                  required: true
-                tables:
-                  type: array
-                  items:
-                    type: number
-                    format: guid
-                menus:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: guid
-                    quantity:
-                      type: number
-                      format: int64
-                    note:
-                      type: string
-                      format: 
-                        maxLength: 1500
-                paymentMethod:
-                  type: string
-                  enum: [bank_transfer, other_qris]
-                  required: true
-                halfPayment:
-                  type: boolean
-                  required: true
-                  
-            examples:
-              Create Reservasi:
-                value:
-                  reserveBy: "Example"
-                  community: "Community 1"
-                  phoneNumber: "082333232322"
-                  note: "Tolong diantar ke rumah"
-                  start: "2021-01-01 12:30"
-                  end: "2021-01-01 15:30"
-                  tables: ["13087215-815c-4b98-b383-e57e0157eb7c", "13087215-815c-64543-b383-e57e0157eb7c", "13087215-815c-4b98-b383-e571287932eb7c"]
-                  menus: [
-                    {
-                      id: "13087215-815c-4b98-b383-e57e0157eb7c",
-                      quantity: 2,
-                      note: "Tolong tambah pedas"
-                    },
-                    {
-                      id: "13087215-815c-4b98-b383-e57e0157eb7c",
-                      quantity: 1
-                    }
-                  ]
-                  paymentMethod: "other_qris"
-                  halfPayment: true
-      responses: 
-        201:
-          description: Reservasi data created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 201
-                  status:
-                    type: string
-                    example: "CREATED"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        token:
-                          type: string
-                          format: uuid
-                        redirectUrl:
-                          type: string
-                          example: "https://app.sandbox.midtrans.com/snap/v4/redirection/0ea12cbc-9ac3-4a5e-9c0a-4bc83520545f"
-                  errors: 
-                    type: NULL
-        400:
-          description: Bad request
-        500:
-          description: Internal server error
-
-  /reservasi/{id}:
+    
+  /detail-reservasi/{id}:
     get:
       tags:
-        - Reservasi
-      summary: Get reservasi data by id
+        - DetailReservasi
+      summary: Get detail reservasi data by id
       parameters:
         - name: id
           in: path
-          description: Reservasi id
+          description: Detail Reservasi id
           required: true
           schema:
             type: string
@@ -320,26 +163,14 @@ paths:
                       id:
                         type: string
                         format: uuid
-                      reserveBy:
+                      reservasiId:
                         type: string
                         minLength: 3
                         maxLength: 150
-                      community:
+                      tableId:
                         type: string
                         minLength: 3
                         maxLength: 150
-                      phoneNumber:
-                        type: string
-                        minLength: 3
-                        maxLength: 12
-                      note:
-                        type: string
-                      start:
-                        type: string
-                        example: "2021-01-01 12:30"
-                      end:
-                        type: string
-                        example: "2021-01-01 12:30"
                       createdAt:
                         type: string
                         format: date-time
@@ -352,113 +183,6 @@ paths:
                   errors: 
                     type: NULL
         404:
-          description: Reservasi data not found
-        500:
-          description: Internal server error
-
-  /reservasi/update-status:
-    post:
-      tags: 
-        - Reservasi
-      summary: Update reservasi status
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                  format: uuid
-                  required: true
-                status:
-                  type: string
-                  enum: [PROSES, SELESAI_DIBUAT]
-                  required: true
-              examples:
-                Status 1:
-                  value:
-                    id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                    status: "PROSES"
-                Status 2:
-                  value:
-                    id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                    status: "SELESAI_DIBUAT"
-      responses:
-        200:
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: string
-                    example: "Reservasi status updated successfully"
-                  errors: 
-                    type: NULL
-        404:
-          description: Reservasi data not found
-        500:
-          description: Internal server error
-
-  /reservasi/cancel:
-    post:
-      tags: 
-        - Reservasi
-      summary: Cancel reservasi
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                  format: uuid
-                  required: true
-              examples:
-                value:
-                  id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                  status: "PROSES"
-      responses:
-        200:
-          description: Success response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: string
-                    example: "Reservasi Canceled successfully"
-                  errors: 
-                    type: NULL
-        404:
-          description: Reservasi data not found
+          description: Detail Reservasi data not found
         500:
           description: Internal server error

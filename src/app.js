@@ -23,6 +23,7 @@ import swaggerUi from "swagger-ui-express";
 import tableRoutes from "./domains/table/table-routes.js";
 import transactionRoutes from "./domains/transaction/transaction-routes.js";
 import BaseError from "./base_classes/base-error.js";
+import detailReservasiRoutes from "./domains/detailReservasi/detailReservasi-routes.js";
 
 class ExpressApplication {
   app;
@@ -92,6 +93,7 @@ class ExpressApplication {
     this.app.use("/api/v1/menu", menuRoutes);
     this.app.use("/api/v1/supplier", supplierRoutes);
     this.app.use("/api/v1/reservasi", reservasiRoutes);
+    this.app.use("/api/v1/detail-reservasi", detailReservasiRoutes)
     this.app.use("/api/v1/table", tableRoutes);
     this.app.use("/api/v1/order", orderRoutes);
     this.app.use("/api/v1/order-detail", orderDetailRoutes);

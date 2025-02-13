@@ -1,5 +1,6 @@
 import OrderServices from "./order-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
+import BaseError from "../../base_classes/base-error.js";
 
 class OrderController {
   async index(req, res) {
