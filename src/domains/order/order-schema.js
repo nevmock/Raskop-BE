@@ -1,11 +1,5 @@
 import Joi from "joi";
-
-export const orderSchema = Joi.object({
-  id: Joi.string().guid().optional().messages({
-    "string.base": "Id must be string",
-    "string.guid": "Id must be guid",
-  }),
-
+const orderSchema = Joi.object({
   orderBy: Joi.string().required().min(3).max(150).messages({
     "string.min": "Order By must be min 3 character",
     "string.max": "Order By must be max 150 character",
@@ -16,8 +10,21 @@ export const orderSchema = Joi.object({
     "string.max": "Phone Number must be max 12 character",
   }),
 
-  reservationId: Joi.string().guid().optional().messages({
-    "string.base": "Reservation Id must be string",
-    "string.guid": "Reservation Id must be guid",
-  }),
+  menus: Joi.array().items(
+    Joi.object({
+        id: Joi.string().guid().required(),
+        quantity: Joi.number().integer().min(1).required(),
+        note: Joi.string().optional().max(1500),
+    })).required().min(1).messages({
+        'array.min': 'Menus must be min 1 item',
+    }),
+
+  paymentMethod: Joi.string().valid('bank_transfer', 'other_qris').required(),
 });
+
+const updateStatusOrderSchema = Joi.object({
+    id: Joi.string().guid().required(),
+    status: Joi.string().valid('PROSES', 'SELESAI_DIBUAT').required(),
+});
+
+export { orderSchema, updateStatusOrderSchema };

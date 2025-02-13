@@ -17,15 +17,18 @@ class OrderServices {
     advSearch = advSearch ? JSON.parse(advSearch) : null;
     order = order ? JSON.parse(order) : null;
 
-    const where = {
+    let where = {
       ...(search && {
-        OR: [{ order_by: { contains: search } }, { phone_number: { contains: search } }],
+        OR: [{ order_by: { contains: search } }, { phone_number: { contains: search } }, { reservasi_id: { contains: search }}, { status: { contains: search }}],
       }),
       ...(advSearch && {
-        ...(advSearch.orderBy && { reserve_by: { contains: advSearch.orderBy } }),
-        ...(advSearch.phoneNumber && { phone_number: advSearch.phoneNumber }),
+        ...(advSearch.orderBy && { order_by: { contains: advSearch.orderBy } }),
+        ...(advSearch.phoneNumber && { phone_number: { contains: advSearch.phoneNumber } }),
+        ...(advSearch.status && { status: { contains: advSearch.status } }),
         ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
-        ...(advSearch.id && { id: advSearch.id }),
+        ...(advSearch.reservasiId && { reservasi_id: { contains: advSearch.reservasiId } }),
+        ...((advSearch.withReservasi === "true" || advSearch.withReservasi === true) ? {} : { reservasi_id: null }),
+        ...(advSearch.id && { id: { contains: advSearch.id } }),
         ...((advSearch.startDate || advSearch.endDate) && {
           created_at: {
             ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
@@ -35,18 +38,33 @@ class OrderServices {
       }),
     };
 
+
     const orderBy = Array.isArray(order)
       ? order.map((o) => ({
           [snakeCase(o.column)]: o.direction.toLowerCase() === "asc" ? "asc" : "desc",
         }))
       : [];
 
+    const include = {
+      ...(advSearch && (advSearch.withRelation)) && {
+        order_detail : {
+          include: {
+            menu : true
+          }
+        },
+        transaction: true 
+      }
+    }
+    
     const filters = {
       where,
       orderBy,
       skip: start - 1,
       take: length,
+      include
     };
+
+    // console.log(filters)
 
     let orders = await this.OrderRepository.get(filters);
 
@@ -70,29 +88,75 @@ class OrderServices {
   };
 
   create = async (data) => {
-    data = convertKeysToSnakeCase(data);
+    return await this.OrderRepository.withTransaction(async (tx) => {
+      data = convertKeysToSnakeCase(data);
 
-    let order = await this.OrderRepository.create(data);
+      let dataOrder = {
+        order_by: data.order_by,
+        phone_number: data.phone_number,
+      }
 
-    order = camelize(order);
+      let menus = [];
+      // object prisma 
+      for (const menuItem of data.menus) {
+          let menu = await tx.menu.findUnique({
+              where: {
+                  id: menuItem.id,
+              }
+          });
+  
+          if (!menu || menu.deleted_at) {
+              throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
+          }
 
-    return order;
-  };
+          if (!menu.is_active){
+              throw BaseError.badRequest(`Menu with id ${menuItem.id} is not active`);
+          }
 
-  update = async (id, data) => {
-    const isExist = await this.OrderRepository.getById(id);
+          menu = await tx.menu.update({
+              where: {
+                  id: menuItem.id,
+              },
+              data: {
+                  qty: {
+                      decrement: menuItem.quantity
+                  }
+              }
+          });
 
-    if (!isExist) {
-      throw BaseError.notFound("Order does not exist");
-    }
+          if (menu.qty < 0){
+              throw BaseError.badRequest(`Quantity Menu with id ${menuItem.id} is out of stock`);
+          }
 
-    data = convertKeysToSnakeCase(data);
+          sumTotalMenu += menuItem.quantity;
 
-    let order = await this.OrderRepository.update(id, data);
+          dataOrder.order_detail.create.push({
+              menu_id: menu.id,
+              qty: menuItem.quantity,
+              price: menu.price,
+              note: menuItem.note
+          });
 
-    order = camelize(order);
+          menus.push(menu);
+      }
 
-    return order;
+      dataOrder.status = "MENUNGGU_PEMBAYARAN";
+
+      delete data.menus;
+      delete data.payment_method;
+      
+      let order = await tx.order.create({
+        data: dataOrder,
+      })
+
+      if (!order){
+        throw BaseError.badRequest("Failed to create order");
+      }
+
+      let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod)
+  
+      return transaction;
+    });
   };
 
   delete = async (id) => {
@@ -120,6 +184,26 @@ class OrderServices {
 
     await this.OrderRepository.deletePermanent(id);
   };
+
+  updateStatusOrder = async (id, status) => {
+    const order = await this.OrderRepository.getByIdWithRelation(id);
+
+    if (!order || order.deleted_at) {
+        throw BaseError.notFound("Order does not exist");
+    }
+
+    if (order.status != "BELUM_DIBUAT" && order.status != "PROSES"){
+        throw BaseError.badRequest("Order status cannot be updated");
+    }
+
+    const updatedOrder = await this.OrderRepository.update(order.id, { status : status });
+
+    if (!updatedOrder){
+        throw Error("Failed to update Order status");
+    }
+
+    return updatedOrder;
+  }
 }
 
 export default new OrderServices();

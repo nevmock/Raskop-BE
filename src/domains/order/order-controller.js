@@ -10,32 +10,40 @@ class OrderController {
     return successResponse(res, data, total);
   }
 
-  async createOrUpdate(req, res) {
-    let data = req.body;
+  async show(req, res){
+    const { id } = req.params;
 
-    if (data.id) {
-      const order = await OrderServices.update(data.id, data);
-
-      return successResponse(res, order);
+    const include = {
+      include: {
+        order_detail: {
+          include: {
+            menu: true
+          }
+        },
+        transaction: true
+      }
     }
+
+    const order = await OrderServices.getById(id, include);
+
+    return successResponse(res, order);
+  }
+
+  async create(req, res) {
+    let data = req.body;
 
     const order = await OrderServices.create(data);
 
     return createdResponse(res, order);
   }
 
-  async delete(req, res) {
-    const { id, permanent } = req.query;
-
-    if (permanent === true || permanent === "true") {
-      await OrderServices.deletePermanent(id);
-
-      return successResponse(res, "Order deleted permanently");
+  async updateStatusOrder(req, res) {
+      const { id, status } = req.body;
+  
+      const order = await OrderServices.updateStatusOrder(id, status);
+  
+      return successResponse(res, "Order status updated successfully");
     }
-    await OrderServices.delete(id);
-
-    return successResponse(res, "Order deleted successfully");
-  }
 }
 
 export default new OrderController();
