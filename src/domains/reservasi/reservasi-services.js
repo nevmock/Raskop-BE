@@ -101,6 +101,8 @@ class ReservasiServices {
             ...params,
         });
 
+        
+
         if (!reservasi) {
             throw BaseError.notFound("Reservasi does not exist");
         }
@@ -117,8 +119,16 @@ class ReservasiServices {
             data.start = new Date(data.start);
             data.end = new Date(data.end);
 
+            let totalHours = Math.abs(data.end - data.start) / 36e5;
+
+            if (totalHours < 4){
+                throw BaseError.badRequest("Minimum reservation time is 4 hours");
+            }
+
             let sumMinimumTableCapacity = 0;
             let dataDetailReservasi = [];
+
+            data.tables = [... new Set(data.tables)];
 
             for (const tableId of data.tables) {
                 const table = await tx.table.findUnique({
@@ -257,7 +267,7 @@ class ReservasiServices {
                 throw Error("Failed to find order");
             }
 
-            let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod, data.half_payment);
+            let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod);
 
             return transaction;
         })

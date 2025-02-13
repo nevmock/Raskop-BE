@@ -13,7 +13,27 @@ class ReservasiController {
   async show(req, res) {
     const { id } = req.params;
 
-    const reservasi = await ReservasiServices.getById(id);
+    const include = {
+      include: {
+        detail_reservasis: {
+          include: {
+            table: true
+          }
+        },
+        orders: {
+          include: {
+            order_detail: {
+              include: {
+                menu: true
+              }
+            },
+            transaction: true
+          }
+        }
+      }
+      
+    }
+    const reservasi = await ReservasiServices.getById(id, include);
 
     return successResponse(res, reservasi);
   }

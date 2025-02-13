@@ -159,7 +159,6 @@ paths:
       tags:
         - Reservasi
       summary: Create reservasi data
-      parameters:
       requestBody:
         required: true
         content:
@@ -167,10 +166,6 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: string
-                  format: uuid
-                  required: false
                 reserveBy:
                   type: string
                   required: true
@@ -218,6 +213,13 @@ paths:
                       type: string
                       format: 
                         maxLength: 1500
+                paymentMethod:
+                  type: string
+                  enum: [bank_transfer, other_qris]
+                  required: true
+                halfPayment:
+                  type: boolean
+                  required: true
                   
             examples:
               Create Reservasi:
@@ -227,7 +229,7 @@ paths:
                   phoneNumber: "082333232322"
                   note: "Tolong diantar ke rumah"
                   start: "2021-01-01 12:30"
-                  end: "2021-01-01 12:30"
+                  end: "2021-01-01 15:30"
                   tables: ["13087215-815c-4b98-b383-e57e0157eb7c", "13087215-815c-64543-b383-e57e0157eb7c", "13087215-815c-4b98-b383-e571287932eb7c"]
                   menus: [
                     {
@@ -240,6 +242,8 @@ paths:
                       quantity: 1
                     }
                   ]
+                  paymentMethod: "other_qris"
+                  halfPayment: true
       responses: 
         201:
           description: Reservasi data created
@@ -351,7 +355,6 @@ paths:
           description: Reservasi data not found
         500:
           description: Internal server error
-
 
   /reservasi/update-status:
     post:
