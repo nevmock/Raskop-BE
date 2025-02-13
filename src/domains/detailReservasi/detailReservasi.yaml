@@ -1,0 +1,188 @@
+paths:
+  /detail-reservasi: 
+    get:             
+      tags:
+        - DetailReservasi
+      summary: Get detail reservasi datas
+      parameters:
+        - name: params
+          in: query
+          description: Params for get Detail Reservasi data
+          required: false
+          schema:
+            type: object
+            properties:
+              start:
+                type: number
+                example: 1
+              length:
+                type: number
+                example: 10
+              search:
+                type: string
+                example: "Detail Reservasi 1"
+              advSearch:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  reservasiId:
+                    type: string
+                  tableId:
+                    type: string
+                  startDate:
+                    type: string
+                    format: date-time
+                  endDate:
+                    type: string
+                    format: date-time
+                  withDeleted:
+                    type: boolean
+                  withRelation:
+                    type: boolean
+              order:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column:
+                      type: string
+                      enum: [id, reservasiId, tableId, createdAt, updatedAt]
+                    direction:
+                      type: string
+                      enum: [ASC, DESC]
+            example:
+              start: 1
+              length: 10
+              search: "Reservasi 1"
+              advSearch:
+                id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                reservasiId: "Example"
+                tableId: "Community 1"
+                startDate: "2021-01-01T00:00:00.000Z"
+                endDate: "2021-12-31T23:59:59.999Z"
+                withDeleted: true
+                withRelation: true
+              order:
+                - column: id
+                  direction: ASC
+                - column: reservasiId
+                  direction: DESC
+                - column: tableId
+                  direction: ASC
+                - column: createdAt
+                  direction: DESC
+                - column: updatedAt
+                  direction: ASC
+
+      responses: 
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        reservasiId:
+                          type: string
+                          minLength: 3
+                          maxLength: 150
+                        tableId:
+                          type: string
+                          minLength: 3
+                          maxLength: 150
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors: 
+                    type: NULL
+        500:
+          description: Internal server error
+    
+  /detail-reservasi/{id}:
+    get:
+      tags:
+        - DetailReservasi
+      summary: Get detail reservasi data by id
+      parameters:
+        - name: id
+          in: path
+          description: Detail Reservasi id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "13087215-815c-4b98-b383-e57e0157eb7c"
+      responses: 
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      reservasiId:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      tableId:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      deletedAt:
+                        type: string
+                        format: date-time
+                  errors: 
+                    type: NULL
+        404:
+          description: Detail Reservasi data not found
+        500:
+          description: Internal server error

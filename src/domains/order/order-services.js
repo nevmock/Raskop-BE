@@ -2,13 +2,10 @@ import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import OrderRepository from "./order-repository.js";
-import reservasiRepository from "../reservasi/reservasi-repository.js";
-import { snakeCase } from "change-case";
 
 class OrderServices {
   constructor() {
     this.OrderRepository = OrderRepository;
-    this.ReservasiRepository = reservasiRepository;
   }
 
   async getAll(params = {}) {
@@ -20,16 +17,18 @@ class OrderServices {
     advSearch = advSearch ? JSON.parse(advSearch) : null;
     order = order ? JSON.parse(order) : null;
 
-    const where = {
+    let where = {
       ...(search && {
-        OR: [{ order_by: { contains: search } }, { phone_number: { contains: search } }],
+        OR: [{ order_by: { contains: search } }, { phone_number: { contains: search } }, { reservasi_id: { contains: search }}, { status: { contains: search }}],
       }),
       ...(advSearch && {
         ...(advSearch.orderBy && { order_by: { contains: advSearch.orderBy } }),
-        ...(advSearch.phoneNumber && { phone_number: advSearch.phoneNumber }),
+        ...(advSearch.phoneNumber && { phone_number: { contains: advSearch.phoneNumber } }),
+        ...(advSearch.status && { status: { contains: advSearch.status } }),
         ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
-        ...(advSearch.id && { id: advSearch.id }),
-        ...(advSearch.status && { status: advSearch.status }),
+        ...(advSearch.reservasiId && { reservasi_id: { contains: advSearch.reservasiId } }),
+        ...((advSearch.withReservasi === "true" || advSearch.withReservasi === true) ? {} : { reservasi_id: null }),
+        ...(advSearch.id && { id: { contains: advSearch.id } }),
         ...((advSearch.startDate || advSearch.endDate) && {
           created_at: {
             ...(advSearch.startDate && { gte: new Date(advSearch.startDate) }),
@@ -39,6 +38,7 @@ class OrderServices {
       }),
     };
 
+
     const orderBy = Array.isArray(order)
       ? order.map((o) => ({
           [snakeCase(o.column)]: o.direction.toLowerCase() === "asc" ? "asc" : "desc",
@@ -46,33 +46,25 @@ class OrderServices {
       : [];
 
     const include = {
-      ...(advSearch &&
-        advSearch.withRelation && {
-          reservasi: {
-            include: {
-              detail_reservasis: {
-                include: {
-                  table: true,
-                },
-              },
-            },
-          },
-          transaction: true,
-          order_detail: {
-            include: {
-              menu: true,
-            },
-          },
-        }),
-    };
-
+      ...(advSearch && (advSearch.withRelation)) && {
+        order_detail : {
+          include: {
+            menu : true
+          }
+        },
+        transaction: true 
+      }
+    }
+    
     const filters = {
       where,
       orderBy,
       skip: start - 1,
       take: length,
-      include,
+      include
     };
+
+    // console.log(filters)
 
     let orders = await this.OrderRepository.get(filters);
 
@@ -81,8 +73,10 @@ class OrderServices {
     return orders;
   }
 
-  getById = async (id) => {
-    let order = await this.OrderRepository.getByIdWithRelation(id);
+  getById = async (id, params = {}) => {
+    let order = await this.OrderRepository.getById(id, {
+      ...params,
+    });
 
     if (!order) {
       throw BaseError.notFound("Order does not exist");
@@ -94,53 +88,75 @@ class OrderServices {
   };
 
   create = async (data) => {
-    if (data.id) {
-      throw BaseError.badRequest("Id is not allowed!");
-    }
+    return await this.OrderRepository.withTransaction(async (tx) => {
+      data = convertKeysToSnakeCase(data);
 
-    if (!data.status || (data.status && data.status.length === 0)) {
-      data.status = "MENUNGGU_PEMBAYARAN";
-    }
-
-    if (data.reservasiId) {
-      const isReservationExist = await this.ReservasiRepository.getById(data.reservasiId);
-
-      if (!isReservationExist) {
-        throw BaseError.notFound("Reservation does not exist");
+      let dataOrder = {
+        order_by: data.order_by,
+        phone_number: data.phone_number,
       }
-    }
 
-    data = convertKeysToSnakeCase(data);
+      let menus = [];
+      // object prisma 
+      for (const menuItem of data.menus) {
+          let menu = await tx.menu.findUnique({
+              where: {
+                  id: menuItem.id,
+              }
+          });
+  
+          if (!menu || menu.deleted_at) {
+              throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
+          }
 
-    let order = await this.OrderRepository.create(data);
+          if (!menu.is_active){
+              throw BaseError.badRequest(`Menu with id ${menuItem.id} is not active`);
+          }
 
-    order = camelize(order);
+          menu = await tx.menu.update({
+              where: {
+                  id: menuItem.id,
+              },
+              data: {
+                  qty: {
+                      decrement: menuItem.quantity
+                  }
+              }
+          });
 
-    return order;
-  };
+          if (menu.qty < 0){
+              throw BaseError.badRequest(`Quantity Menu with id ${menuItem.id} is out of stock`);
+          }
 
-  update = async (id, data) => {
-    const isExist = await this.OrderRepository.getById(id);
+          sumTotalMenu += menuItem.quantity;
 
-    if (!isExist) {
-      throw BaseError.notFound("Order does not exist");
-    }
+          dataOrder.order_detail.create.push({
+              menu_id: menu.id,
+              qty: menuItem.quantity,
+              price: menu.price,
+              note: menuItem.note
+          });
 
-    if (data.reservasiId) {
-      const isReservationExist = await this.ReservasiRepository.getById(data.reservasiId);
-
-      if (!isReservationExist) {
-        throw BaseError.notFound("Reservation does not exist");
+          menus.push(menu);
       }
-    }
 
-    data = convertKeysToSnakeCase(data);
+      dataOrder.status = "MENUNGGU_PEMBAYARAN";
 
-    let order = await this.OrderRepository.update(id, data);
+      delete data.menus;
+      delete data.payment_method;
+      
+      let order = await tx.order.create({
+        data: dataOrder,
+      })
 
-    order = camelize(order);
+      if (!order){
+        throw BaseError.badRequest("Failed to create order");
+      }
 
-    return order;
+      let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod)
+  
+      return transaction;
+    });
   };
 
   delete = async (id) => {
@@ -156,22 +172,38 @@ class OrderServices {
       throw BaseError.notFound("Order does not exist");
     }
 
-    await this.OrderRepository.deleteWithRelation(id);
+    await this.OrderRepository.delete(id);
   };
 
   deletePermanent = async (id) => {
     const isExist = await this.OrderRepository.getById(id);
 
-    if (!isExist) {
+    if (!isExist || isExist.deleted_at) {
       throw BaseError.notFound("Order does not exist");
-    }
-
-    if (!isExist.deleted_at) {
-      throw BaseError.badRequest("Order is not deleted yet");
     }
 
     await this.OrderRepository.deletePermanent(id);
   };
+
+  updateStatusOrder = async (id, status) => {
+    const order = await this.OrderRepository.getByIdWithRelation(id);
+
+    if (!order || order.deleted_at) {
+        throw BaseError.notFound("Order does not exist");
+    }
+
+    if (order.status != "BELUM_DIBUAT" && order.status != "PROSES"){
+        throw BaseError.badRequest("Order status cannot be updated");
+    }
+
+    const updatedOrder = await this.OrderRepository.update(order.id, { status : status });
+
+    if (!updatedOrder){
+        throw Error("Failed to update Order status");
+    }
+
+    return updatedOrder;
+  }
 }
 
 export default new OrderServices();

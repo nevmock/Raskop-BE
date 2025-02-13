@@ -3,11 +3,11 @@ paths:
     get:
       tags:
         - Order
-      summary: Get all orders
+      summary: Get Order Data
       parameters:
         - name: params
           in: query
-          description: Params for get orders data
+          description: Params for get Reservasi data
           required: false
           schema:
             type: object
@@ -20,19 +20,20 @@ paths:
                 example: 10
               search:
                 type: string
-                example: "Dika"
+                example: "Order 1"
               advSearch:
                 type: object
                 properties:
                   id:
                     type: string
-                  orderBy:
+                  reservasiId:
                     type: string
-                  phoneNumber:
+                  order_by:
                     type: string
                   status:
                     type: string
-                    enum: [MENUNGGU_PEMBAYARAN, MENUNGGU_PELUNASAN, BELUM_DIBUAT, PROSES, SELESAI_DIBUAT, CANCELED]
+                  phoneNumber:
+                    type: string
                   startDate:
                     type: string
                     format: date-time
@@ -43,6 +44,8 @@ paths:
                     type: boolean
                   withRelation:
                     type: boolean
+                  withReservasi:
+                    type: boolean
               order:
                 type: array
                 items:
@@ -50,32 +53,43 @@ paths:
                   properties:
                     column:
                       type: string
-                      enum: [orderBy, phoneNumber, status, createdAt, updatedAt, deletedAt]
+                      enum: [id, reservasiId, orderBy, phoneNumber, status, createdAt, updatedAt]
                     direction:
                       type: string
                       enum: [ASC, DESC]
             example:
               start: 1
               length: 10
-              search: "Dika"
+              search: "Reservasi 1"
               advSearch:
                 id: "13087215-815c-4b98-b383-e57e0157eb7c"
-                orderBy: "Dika"
-                phoneNumber: "09123456789"
+                reservasiId: "13087215-815c-4b98-b383-e57e0157eb7c"
+                orderBy: "Community 1"
+                phoneNumber: "082333232322"
                 status: "MENUNGGU_PEMBAYARAN"
                 startDate: "2021-01-01T00:00:00.000Z"
                 endDate: "2021-12-31T23:59:59.999Z"
-                withDeleted: false
+                withDeleted: true
                 withRelation: true
+                withReservasi: false
               order:
+                - column: id
+                  direction: ASC
+                - column: reservasiId
+                  direction: DESC
                 - column: orderBy
                   direction: ASC
                 - column: phoneNumber
                   direction: DESC
-
+                - column: status
+                  direction: ASC
+                - column: createdAt
+                  direction: ASC
+                - column: updatedAt
+                  direction: DESC
       responses:
         200:
-          description: Successfully retrieved order(s)
+          description: Success response
           content:
             application/json:
               schema:
@@ -93,66 +107,42 @@ paths:
                     format: int64
                     example: 1
                   data:
-                    oneOf:
-                      - type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            reservasiId:
-                              type: string
-                              format: uuid
-                              nullable: true
-                            orderBy:
-                              type: string
-                            phoneNumber:
-                              type: string
-                            status:
-                              type: string
-                            createdAt:
-                              type: string
-                              format: date-time
-                            updatedAt:
-                              type: string
-                              format: date-time
-                            deletedAt:
-                              type: string
-                              format: date-time
-                              nullable: true
-                      - type: object
-                        properties:
-                          id:
-                            type: string
-                            format: uuid
-                          reservasiId:
-                            type: string
-                            format: uuid
-                            nullable: true
-                          orderBy:
-                            type: string
-                          phoneNumber:
-                            type: string
-                          status:
-                            type: string
-                          createdAt:
-                            type: string
-                            format: date-time
-                          updatedAt:
-                            type: string
-                            format: date-time
-                          deletedAt:
-                            type: string
-                            format: date-time
-                            nullable: true
-                  errors:
-                    type: null
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        reservasiId:
+                          type: string
+                          format: uuid
+                        orderBy:
+                          type: string
+                        phoneNumber:
+                          type: string
+                        status:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        deletedAt:
+                          type: string
+                          format: date-time
+                  errors: 
+                    type: NULL
+        400:
+          description: Bad request
+        500:
+          description: Internal server error
 
     post:
       tags:
         - Order
-      summary: Create a new order or update an existing order
+      summary: Create a new order
       requestBody:
         required: true
         content:
@@ -160,39 +150,55 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: string
-                  format: uuid
-                  nullable: true
-                  description: ID of the order (optional for create, required for update)
                 orderBy:
                   type: string
                   minLength: 3
                   maxLength: 150
                   description: The name of the person who placed the order
-                  example: "Dika"
+                  required: true
                 phoneNumber:
                   type: string
                   minLength: 3
                   maxLength: 12
                   description: Phone number of the person who placed the order
-                  example: "08123123123"
-                status:
+                  required: true
+                menus:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: guid
+                    quantity:
+                      type: number
+                      format: int64
+                    note:
+                      type: string
+                      format: 
+                        maxLength: 1500
+                paymentMethod:
                   type: string
-                  enum: [MENUNGGU_PEMBAYARAN, MENUNGGU_PELUNASAN, BELUM_DIBUAT, PROSES, SELESAI_DIBUAT, CANCELED]
-                  description: Order status
-                  example: "MENUNGGU_PEMBAYARAN"
-                reservasiId:
-                  type: string
-                  format: uuid
-                  nullable: true
-                  description: ID of the reservation (optional)
-              required:
-                - orderBy
-                - phoneNumber
+                  enum: [bank_transfer, other_qris]
+                  required: true
+            examples:
+              Create Order:
+                value:
+                  orderBy: "John Doe"
+                  phoneNumber: "081234567890"
+                  menus: [
+                    {
+                      id: "13087215-815c-4b98-b383-e57e0157eb7c",
+                      quantity: 2
+                    },
+                    {
+                      id: "13087215-815c-4b98-b383-e57e0157eb7c",
+                      quantity: 1,
+                      note: "Extra sugar"
+                    }
+                  ]
+                  paymentMethod: "bank_transfer"
       responses:
         201:
-          description: Order created successfully
+          description: Reservasi data created
           content:
             application/json:
               schema:
@@ -204,175 +210,47 @@ paths:
                     example: 201
                   status:
                     type: string
-                    example: "Created"
+                    example: "CREATED"
                   recordsTotal:
                     type: integer
                     format: int64
                     example: 1
                   data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                      reservasiId:
-                        type: string
-                        format: uuid
-                        nullable: true
-                      orderBy:
-                        type: string
-                      phoneNumber:
-                        type: string
-                      status:
-                        type: string
-                      createdAt:
-                        type: string
-                        format: date-time
-                      updatedAt:
-                        type: string
-                        format: date-time
-                      deletedAt:
-                        type: string
-                        format: date-time
-                        nullable: true
-                  errors:
-                    type: null
-        200:
-          description: Order updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 1
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                      reservasiId:
-                        type: string
-                        format: uuid
-                        nullable: true
-                      orderBy:
-                        type: string
-                      phoneNumber:
-                        type: string
-                      status:
-                        type: string
-                      createdAt:
-                        type: string
-                        format: date-time
-                      updatedAt:
-                        type: string
-                        format: date-time
-                      deletedAt:
-                        type: string
-                        format: date-time
-                        nullable: true
-                  errors:
-                    type: null
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                          format: uuid
+                        redirectUrl:
+                          type: string
+                          example: "https://app.sandbox.midtrans.com/snap/v4/redirection/0ea12cbc-9ac3-4a5e-9c0a-4bc83520545f"
+                  errors: 
+                    type: NULL
+        400:
+          description: Bad request
+        500:
+          description: Internal server error
 
-    delete:
-      tags:
-        - Order
-      summary: Delete an order
-      parameters:
-        - name: id
-          in: query
-          description: ID of the order
-          required: true
-          schema:
-            type: string
-        - name: permanent
-          in: query
-          description: Delete option
-          required: false
-          schema:
-            type: boolean
-      responses:
-        200:
-          description: Order deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 200
-                  status:
-                    type: string
-                    example: "OK"
-                  recordsTotal:
-                    type: integer
-                    format: int
-                    example: 1
-                  data:
-                    type: string
-                    example: "Order deleted successfully"
-                  errors:
-                    type: null
-        404:
-          description: Order not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int64
-                    example: 404
-                  status:
-                    type: string
-                    example: "Not Found"
-                  recordsTotal:
-                    type: integer
-                    format: int64
-                    example: 0
-                  data:
-                    type: null
-                  errors:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                        example: "Resource Not Found"
-                      message:
-                        type: string
-                        example: "Order does not exist"
-                      validation:
-                        type: null
 
   /order/{id}:
     get:
       tags:
         - Order
-      summary: Get an order by ID
+      summary: Get Order Data by ID
       parameters:
         - name: id
           in: path
-          description: ID of the order
+          description: Order ID
           required: true
           schema:
             type: string
-
+            format: uuid
+            example: "13087215-815c-4b98-b383-e57e0157eb7c"
       responses:
         200:
-          description: Successfully retrieved order(s)
+          description: Success response
           content:
             application/json:
               schema:
@@ -390,56 +268,96 @@ paths:
                     format: int64
                     example: 1
                   data:
-                    oneOf:
-                      - type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            reservasiId:
-                              type: string
-                              format: uuid
-                              nullable: true
-                            orderBy:
-                              type: string
-                            phoneNumber:
-                              type: string
-                            status:
-                              type: string
-                            createdAt:
-                              type: string
-                              format: date-time
-                            updatedAt:
-                              type: string
-                              format: date-time
-                            deletedAt:
-                              type: string
-                              format: date-time
-                              nullable: true
-                      - type: object
-                        properties:
-                          id:
-                            type: string
-                            format: uuid
-                          reservasiId:
-                            type: string
-                            format: uuid
-                            nullable: true
-                          orderBy:
-                            type: string
-                          phoneNumber:
-                            type: string
-                          createdAt:
-                            type: string
-                            format: date-time
-                          updatedAt:
-                            type: string
-                            format: date-time
-                          deletedAt:
-                            type: string
-                            format: date-time
-                            nullable: true
-                  errors:
-                    type: null
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      reservasiId:
+                        type: string
+                        format: uuid
+                      orderBy:
+                        type: string
+                        minLength: 3
+                        maxLength: 150
+                      phoneNumber:
+                        type: string
+                        minLength: 3
+                        maxLength: 12
+                      status:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      deletedAt:
+                        type: string
+                        format: date-time
+                  errors: 
+                    type: NULL
+        404:
+          description: Reservasi data not found
+        500:
+          description: Internal server error
+
+
+  /order/update-status:
+    post:
+      tags:
+        - Order
+      summary: Update Order Status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: Order ID
+                  required: true
+                status:
+                  type: string
+                  enum: [PROSES, SELESAI_DIBUAT]
+                  required: true
+            examples:
+              Status 1:
+                  value:
+                    id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                    status: "PROSES"
+              Status 2:
+                value:
+                  id: "13087215-815c-4b98-b383-e57e0157eb7c"
+                  status: "SELESAI_DIBUAT"
+    responses:
+        200:
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int64
+                    example: 200
+                  status:
+                    type: string
+                    example: "OK"
+                  recordsTotal:
+                    type: integer
+                    format: int64
+                    example: 1
+                  data:
+                    type: string
+                    example: "Order status updated successfully"
+                  errors: 
+                    type: NULL
+        404:
+          description: Order data not found
+        500:
+          description: Internal server error

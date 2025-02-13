@@ -1,5 +1,6 @@
 import OrderServices from "./order-services.js";
 import { createdResponse, successResponse } from "../../utils/response.js";
+import BaseError from "../../base_classes/base-error.js";
 
 class OrderController {
   async index(req, res) {
@@ -22,32 +23,21 @@ class OrderController {
     return successResponse(res, order);
   }
 
-  async createOrUpdate(req, res) {
+  async create(req, res) {
     let data = req.body;
-
-    if (data.id) {
-      const order = await OrderServices.update(data.id, data);
-
-      return successResponse(res, order);
-    }
 
     const order = await OrderServices.create(data);
 
     return createdResponse(res, order);
   }
 
-  async delete(req, res) {
-    const { id, permanent } = req.query;
-
-    if (permanent === true || permanent === "true") {
-      await OrderServices.deletePermanent(id);
-
-      return successResponse(res, "Order deleted permanently");
+  async updateStatusOrder(req, res) {
+      const { id, status } = req.body;
+  
+      const order = await OrderServices.updateStatusOrder(id, status);
+  
+      return successResponse(res, "Order status updated successfully");
     }
-    await OrderServices.delete(id);
-
-    return successResponse(res, "Order deleted successfully");
-  }
 }
 
 export default new OrderController();
