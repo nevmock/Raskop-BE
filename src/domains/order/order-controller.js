@@ -10,21 +10,14 @@ class OrderController {
     return successResponse(res, data, total);
   }
 
-  async show(req, res){
+  async show(req, res) {
     const { id } = req.params;
 
-    const include = {
-      include: {
-        order_detail: {
-          include: {
-            menu: true
-          }
-        },
-        transaction: true
-      }
+    if (!id) {
+      throw BaseError.badRequest("ID is required");
     }
 
-    const order = await OrderServices.getById(id, include);
+    const order = await OrderServices.getById(id);
 
     return successResponse(res, order);
   }

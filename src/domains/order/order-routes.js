@@ -8,9 +8,12 @@ class OrderRoutes extends BaseRoutes {
   routes() {
     this.router.get("/", [tryCatch(OrderController.index)]);
 
-    this.router.get('/:id', [tryCatch(OrderController.show)]);
+    this.router.get("/:id", [tryCatch(OrderController.show)]);
 
-    this.router.post("/", [validateCredentials(orderSchema), tryCatch(OrderController.create)]);
+    this.router.post("/", [
+      validateCredentials(orderSchema), 
+      tryCatch(OrderController.create)
+    ]);
 
     this.router.post('/:id/update-status', [
       validateCredentials(updateStatusOrderSchema),
