@@ -1,12 +1,8 @@
-openapi: 3.0.0
-info:
-  title: Order Detail API
-  version: 1.0.0
-  description: API endpoints for managing order details
-
 paths:
   /order-detail:
     get:
+      tags:
+        - OrderDetail
       summary: Get all order details
       responses:
         "200":
@@ -26,6 +22,8 @@ paths:
                       $ref: "#/components/schemas/OrderDetail"
 
     post:
+      tags:
+        - OrderDetail
       summary: Create or update order detail
       requestBody:
         required: true
@@ -56,6 +54,8 @@ paths:
                     $ref: "#/components/schemas/OrderDetail"
 
     delete:
+      tags:
+        - OrderDetail
       summary: Delete order detail
       parameters:
         - in: query
