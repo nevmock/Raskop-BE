@@ -15,8 +15,8 @@ export const supplierSchema = Joi.object({
         'string.max': 'Contact must be max 12 character',
     }),
 
-    type : Joi.string().required().valid('SYRUPE', 'BEANS', 'POWDER', 'CUP', 'SNACK', 'OTHER INGREDIENT').required().messages({
-        'any.only': 'Type must be SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER INGREDIENT',
+    type : Joi.string().required().valid('SYRUPE', 'BEANS', 'POWDER', 'CUP', 'SNACK', 'OTHER_INGREDIENT').required().messages({
+        'any.only': 'Type must be SYRUPE, BEANS, POWDER, CUP, SNACK, OTHER_INGREDIENT',
     }),
 
     productName : Joi.string().required().max(150).messages({
