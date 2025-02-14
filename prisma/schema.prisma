@@ -152,7 +152,7 @@ enum SupplierType {
   POWDER
   CUP
   SNACK
-  OTHER_INGREDIENT @map("OTHER INGREDIENT")
+  OTHER_INGREDIENT
 }
 
 enum Unit {
