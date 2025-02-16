@@ -2,10 +2,12 @@ import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import OrderRepository from "./order-repository.js";
+import TransactionServices from "../transaction/transaction-services.js";
 
 class OrderServices {
   constructor() {
     this.OrderRepository = OrderRepository;
+    this.TransactionServices = TransactionServices;
   }
 
   async getAll(params = {}) {
@@ -94,6 +96,9 @@ class OrderServices {
       let dataOrder = {
         order_by: data.order_by,
         phone_number: data.phone_number,
+        order_detail: {
+          create: []
+        }
       }
 
       let menus = [];
@@ -128,6 +133,8 @@ class OrderServices {
               throw BaseError.badRequest(`Quantity Menu with id ${menuItem.id} is out of stock`);
           }
 
+          let sumTotalMenu = 0
+
           sumTotalMenu += menuItem.quantity;
 
           dataOrder.order_detail.create.push({
@@ -141,6 +148,10 @@ class OrderServices {
       }
 
       dataOrder.status = "MENUNGGU_PEMBAYARAN";
+
+      let paymentMethod = data.payment_method;
+
+      console.log(paymentMethod);
 
       delete data.menus;
       delete data.payment_method;
