@@ -99,7 +99,7 @@ model Order {
   reservasi_id String?
   order_by     String
   phone_number String
-  status       String
+  status       OrderStatus
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   deleted_at   DateTime?
