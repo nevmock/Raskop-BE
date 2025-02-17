@@ -142,6 +142,9 @@ paths:
                         end:
                           type: string
                           example: "2021-01-01 12:30"
+                        halfPayment:
+                          type: boolean
+                          example: true
                         createdAt:
                           type: string
                           format: date-time
