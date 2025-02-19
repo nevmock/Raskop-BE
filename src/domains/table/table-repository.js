@@ -39,6 +39,10 @@ class TableRepository extends BaseRepository {
       select: {
         id: true,
         merged_available: true,
+        max_capacity: true,
+        min_capacity: true,
+        is_active: true,
+        is_outdoor: true,
       },
     });
 
