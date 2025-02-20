@@ -7,7 +7,6 @@ on:
 
 jobs:
   build:
-    if: github.ref != 'refs/heads/main'  # Run for all branches except main
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -46,6 +45,6 @@ jobs:
           cd /home/rahman/Raskop-BE
           git reset --hard HEAD
           git pull origin main --rebase
-          npm install --production
+          npm install
           npm run build          
           sudo systemctl restart raskop-be.service
