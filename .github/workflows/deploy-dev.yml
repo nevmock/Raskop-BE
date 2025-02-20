@@ -1,17 +1,42 @@
-name: Deploy to Dev
+name: Build and Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: 
+      - '**'  # Trigger on all branches
 
 jobs:
-  deploy:
+  build:
+    if: github.ref != 'refs/heads/main'  # Run for all branches except main
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.11.0'
+    - name: Load variables
+      run: |
+        touch .env
+        echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
+        echo MIDTRANS_APP_API_URL=${{ secrets.MIDTRANS_APP_API_URL }} >> .env
+        echo MIDTRANS_APP_URL=${{ secrets.MIDTRANS_APP_URL }} >> .env
+        echo MIDTRANS_SERVER_KEY=${{ secrets.MIDTRANS_SERVER_KEY }} >> .env
+        echo NODE_ENV=${{ vars.NODE_ENV }} >> .env
+        echo PORT=${{ vars.PORT }} >> .env
+    - name: Install dependencies
+      run: npm install
+    - name: Build project
+      run: npm run build
 
-    - name: Deploy to Server
+  deploy:
+    if: github.ref == 'refs/heads/main'  # Only run on main branch
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy app
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -21,5 +46,6 @@ jobs:
           cd /home/rahman/Raskop-BE
           git reset --hard HEAD
           git pull origin main --rebase
-          npm run build
+          npm install --production
+          npm run build          
           sudo systemctl restart raskop-be.service
