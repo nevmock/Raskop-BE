@@ -20,6 +20,6 @@ jobs:
         script: |
           cd /home/rahman/Raskop-BE
           git reset --hard HEAD
-          git pull origin master --rebase
+          git pull origin main --rebase
           npm run build
           systemctl restart raskop-be.service
