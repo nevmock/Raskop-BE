@@ -2,6 +2,9 @@ name: Build and Deploy
 
 on:
   push:
+    branches:
+      - '**'
+  pull_request:
     branches: 
       - '**'  # Trigger on all branches
 
