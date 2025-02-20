@@ -22,4 +22,4 @@ jobs:
           git reset --hard HEAD
           git pull origin main --rebase
           npm run build
-          systemctl restart raskop-be.service
+          sudo systemctl restart raskop-be.service
