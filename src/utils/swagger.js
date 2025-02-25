@@ -20,19 +20,19 @@ const options = {
                     },
                 },
             },
+            // {
+            //     url: 'https://api.example.com/api/{version}',
+            //     description: 'Staging server',
+            //     variables: {
+            //         version: {
+            //             default: 'v1',
+            //             enum: ['v1', 'v2'], 
+            //             description: 'API version',
+            //         },
+            //     },
+            // },
             {
-                url: 'https://api.example.com/api/{version}',
-                description: 'Staging server',
-                variables: {
-                    version: {
-                        default: 'v1',
-                        enum: ['v1', 'v2'], 
-                        description: 'API version',
-                    },
-                },
-            },
-            {
-                url: 'https://raskop-be-production.up.railway.app/api/{version}',
+                url: 'https://raskop-backend.kakashispiritnews.my.id/api/{version}',
                 description: 'Production server',
                 variables: {
                     version: {
