@@ -6,6 +6,7 @@ import validateCredentials from '../../middlewares/validate-credentials-middlewa
 class SupplierRoutes extends BaseRoutes {
   routes() {
     this.router.get('/', [tryCatch(SupplierController.index)]);
+    this.router.get('/:id', [tryCatch(SupplierController.show)]);
     this.router.post('/', [validateCredentials(supplierSchema), tryCatch(SupplierController.createOrUpdate)]);
     this.router.delete('/', [tryCatch(SupplierController.delete)]);
   }

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { __dirname, __filename } from "./utils/path.js";
 import apicache from "apicache";
 import compression from "compression";
 import cors from "cors";
@@ -9,12 +10,17 @@ import logger from "./utils/logger.js";
 import morgan from "morgan";
 import multer from "multer";
 import path from "path";
-import { __dirname, __filename } from "./utils/path.js";
-import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "./utils/swagger.js";
-import supplierRoutes from "./domains/supplier/supplier-routes.js";
 import menuRoutes from "./domains/menu/menu-routes.js";
+import orderRoutes from "./domains/order/order-routes.js";
+import orderDetailRoutes from "./domains/orderDetail/orderDetail-routes.js";
 import reservasiRoutes from "./domains/reservasi/reservasi-routes.js";
+import supplierRoutes from "./domains/supplier/supplier-routes.js";
+import swaggerSpec from "./utils/swagger.js";
+import swaggerUi from "swagger-ui-express";
+import tableRoutes from "./domains/table/table-routes.js";
+import transactionRoutes from "./domains/transaction/transaction-routes.js";
+import BaseError from "./base_classes/base-error.js";
+import detailReservasiRoutes from "./domains/detailReservasi/detailReservasi-routes.js";
 class ExpressApplication {
   app;
   fileStorage;
@@ -55,9 +61,6 @@ class ExpressApplication {
       storage: this.fileStorage,
       fileFilter: this.fileFilter
     }).fields([{
-      name: "profile_picture",
-      maxCount: 1
-    }, {
       name: "image",
       maxCount: 1
     }]));
@@ -71,7 +74,15 @@ class ExpressApplication {
     this.app.use("/api/v1/menu", menuRoutes);
     this.app.use("/api/v1/supplier", supplierRoutes);
     this.app.use("/api/v1/reservasi", reservasiRoutes);
+    this.app.use("/api/v1/detail-reservasi", detailReservasiRoutes);
+    this.app.use("/api/v1/table", tableRoutes);
+    this.app.use("/api/v1/order", orderRoutes);
+    this.app.use("/api/v1/order-detail", orderDetailRoutes);
+    this.app.use("/api/v1/transaction", transactionRoutes);
     this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    this.app.use("/*", () => {
+      throw BaseError.notFound("Route not found");
+    });
   }
   configureAssets() {
     this.app.use(express.static(path.join(__filename, "public")));

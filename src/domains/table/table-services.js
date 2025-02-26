@@ -337,9 +337,37 @@ class TableServices {
 
     const mergedTables = findValidCombinations(availableTables, inputData.capacity);
 
+    function getTotalMaxCapacity(tables) {
+      let totalMaxCapacity = 0;
+      tables.map((table) => {
+        totalMaxCapacity += table.max_capacity;
+      });
+      return totalMaxCapacity;
+    }
+
+    let suggestTables = tables && tables.length > 0 ? [tables[0]] : [];
+    if (suggestTables.length > 0) {
+      tables.map((table) => {
+        if (table.max_capacity < suggestTables[0].max_capacity) {
+          suggestTables = [table];
+        }
+      });
+    }
+
+    if (mergedTables.length > 0) {
+      mergedTables.map((mergedTable) => {
+        let currentTotalMaxCapacity = getTotalMaxCapacity(suggestTables);
+        let itemTotalMaxCapacity = getTotalMaxCapacity(mergedTable);
+        if (suggestTables.length === 0) {
+          suggestTables = mergedTable;
+        } else if (itemTotalMaxCapacity < currentTotalMaxCapacity) {
+          suggestTables = mergedTable;
+        }
+      });
+    }
+
     return {
-      tables: tables,
-      mergedTables: mergedTables,
+      tables: suggestTables,
     };
   };
 }

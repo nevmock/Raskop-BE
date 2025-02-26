@@ -544,47 +544,7 @@ paths:
                             deleted_at:
                               type: string
                               format: date-time
-                      mergedTables:
-                        type: array
-                        items:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              id:
-                                type: string
-                                format: uuid
-                              min_capacity:
-                                type: integer
-                                format: int32
-                              max_capacity:
-                                type: integer
-                                format: int32
-                              image_uri:
-                                type: string
-                              description:
-                                type: string
-                              no_table:
-                                type: string
-                              is_outdoor:
-                                type: boolean
-                              barcode:
-                                type: string
-                              is_active:
-                                type: boolean
-                              merged_available:
-                                type: array
-                                items:
-                                  type: string
-                              created_at:
-                                type: string
-                                format: date-time
-                              updated_at:
-                                type: string
-                                format: date-time
-                              deleted_at:
-                                type: string
-                                format: date-time
+
                   errors:
                     type: null
         500:
