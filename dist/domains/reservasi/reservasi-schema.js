@@ -1,7 +1,7 @@
 import JoiBase from 'joi';
 import JoiDate from '@joi/date';
 const Joi = JoiBase.extend(JoiDate);
-export const reservasiSchema = Joi.object({
+const reservasiSchema = Joi.object({
   id: Joi.string().guid().optional().messages({
     'string.base': 'Id must be string',
     'string.guid': 'Id must be guid'
@@ -26,5 +26,25 @@ export const reservasiSchema = Joi.object({
   }),
   end: Joi.date().format('YYYY-MM-DD HH:mm').greater(Joi.ref('start')).required().messages({
     'date.base': 'End must be date'
-  })
+  }),
+  tables: Joi.array().items(Joi.string().guid()).required().min(1).messages({
+    'array.min': 'Tables must be min 1 item'
+  }),
+  menus: Joi.array().items(Joi.object({
+    id: Joi.string().guid().required(),
+    quantity: Joi.number().integer().min(1).required(),
+    note: Joi.string().optional().max(1500)
+  })).required().min(1).messages({
+    'array.min': 'Menus must be min 1 item'
+  }),
+  paymentMethod: Joi.string().valid('bank_transfer', 'other_qris').required(),
+  halfPayment: Joi.boolean().required()
 });
+const updateStatusReservasiSchema = Joi.object({
+  id: Joi.string().guid().required(),
+  status: Joi.string().valid('PROSES', 'SELESAI_DIBUAT').required()
+});
+const cancelReservasiSchema = Joi.object({
+  id: Joi.string().guid().required()
+});
+export { reservasiSchema, updateStatusReservasiSchema, cancelReservasiSchema };

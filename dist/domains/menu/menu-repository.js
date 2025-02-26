@@ -24,8 +24,6 @@ class MenuRepository extends BaseRepository {
         deleted_at
       } = data,
       filteredData = _objectWithoutProperties(data, _excluded2);
-    this.toFloat(filteredData, ["price", "qty"]);
-    this.toBoolean(filteredData, ["is_active"]);
     return await super.update(id, filteredData);
   }
 }

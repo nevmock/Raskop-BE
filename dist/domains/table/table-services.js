@@ -1,0 +1,299 @@
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+import db from "../../utils/prisma.js";
+import camelize from "camelize";
+import BaseError from "../../base_classes/base-error.js";
+import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
+import TableRepository from "./table-repository.js";
+import { snakeCase } from "change-case";
+import { deleteFileIfExists } from "../../utils/delete-file.js";
+class TableServices {
+  constructor() {
+    this.TableRepository = TableRepository;
+  }
+  getAll = async (params = {}) => {
+    let {
+      start = 1,
+      length = 10,
+      search = "",
+      advSearch,
+      order
+    } = params;
+    start = JSON.parse(start);
+    length = JSON.parse(length);
+    advSearch = advSearch ? JSON.parse(advSearch) : null;
+    order = order ? JSON.parse(order) : null;
+    const where = _objectSpread(_objectSpread({}, search && {
+      OR: [{
+        barcode: {
+          contains: search
+        }
+      }, {
+        no_table: {
+          contains: search
+        }
+      }, {
+        description: {
+          contains: search
+        }
+      }]
+    }), advSearch && _objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread({}, advSearch.id && {
+      id: {
+        contains: advSearch.id
+      }
+    }), advSearch.minCapacity && {
+      min_capacity: advSearch.minCapacity
+    }), advSearch.maxCapacity && {
+      max_capacity: advSearch.maxCapacity
+    }), advSearch.description && {
+      description: {
+        contains: advSearch.description
+      }
+    }), advSearch.noTable && {
+      no_table: {
+        contains: advSearch.noTable
+      }
+    }), advSearch.isOutdoor !== undefined && {
+      is_outdoor: advSearch.isOutdoor
+    }), advSearch.isActive !== undefined && {
+      is_active: advSearch.isActive
+    }), (advSearch.withDeleted === "false" || advSearch.withDeleted === false) && {
+      deleted_at: null
+    }), (advSearch.startDate || advSearch.endDate) && {
+      created_at: _objectSpread(_objectSpread({}, advSearch.startDate && {
+        gte: new Date(advSearch.startDate)
+      }), advSearch.endDate && {
+        lte: new Date(advSearch.endDate)
+      })
+    }));
+    const orderBy = Array.isArray(order) ? order.map(o => ({
+      [snakeCase(o.column)]: o.direction.toLowerCase() === "asc" ? "asc" : "desc"
+    })) : [];
+    const filters = {
+      where,
+      orderBy,
+      skip: start - 1,
+      take: length
+    };
+    let tables = await this.TableRepository.get(filters);
+    tables = camelize(tables);
+    return tables;
+  };
+  getById = async (id, params = {}) => {
+    let table = await this.TableRepository.getById(id, _objectSpread({}, params));
+    if (!table) {
+      throw BaseError.notFound("Table does not exist");
+    }
+    table = camelize(table);
+    return table;
+  };
+  getByNoTable = async noTable => {
+    let table = await this.TableRepository.getByNoTable(noTable);
+    table = camelize(table);
+    return table;
+  };
+  create = async data => {
+    data = convertKeysToSnakeCase(data);
+    const isNoTableExist = await this.TableRepository.getByNoTable(data.no_table);
+    if (isNoTableExist) {
+      deleteFileIfExists(data.image_uri);
+      throw BaseError.badRequest("No Table already exist");
+    }
+    if (data.merged_available && data.merged_available.length > 0) {
+      await Promise.all(data.merged_available.map(async tableId => {
+        const isIdTableExist = await TableRepository.getById(tableId);
+        if (!isIdTableExist) {
+          deleteFileIfExists(data.image_uri);
+          throw BaseError.badRequest(`Id Table ${tableId} does not exist`);
+        }
+      }));
+    }
+    let table = await this.TableRepository.create(data);
+    if (data.merged_available && data.merged_available.length > 0) {
+      await Promise.all(data.merged_available.map(async tableId => {
+        const isIdTableExist = await TableRepository.getById(tableId);
+        const mergedAvailable = isIdTableExist.merged_available || [];
+        if (!mergedAvailable.includes(table.id)) {
+          mergedAvailable.push(table.id);
+          isIdTableExist.merged_available = mergedAvailable;
+          await TableRepository.update(tableId, isIdTableExist);
+        }
+      }));
+    }
+    table = camelize(table);
+    return table;
+  };
+  update = async (id, data, file) => {
+    const isExist = await this.TableRepository.getById(id);
+    if (!isExist) {
+      throw BaseError.notFound("Table does not exist");
+    }
+    data = convertKeysToSnakeCase(data);
+    const isNoTableExist = await this.TableRepository.getByNoTable(data.no_table);
+    if (isNoTableExist && isNoTableExist.id !== id) {
+      deleteFileIfExists(data.image_uri);
+      throw BaseError.badRequest("No Table already exist");
+    }
+    if (data.merged_available) {
+      if (data.merged_available.length > 0) {
+        await Promise.all(data.merged_available.map(async tableId => {
+          const isIdTableExist = await TableRepository.getById(tableId);
+          if (!isIdTableExist) {
+            deleteFileIfExists(data.image_uri);
+            throw BaseError.badRequest(`Id Table ${tableId} does not exist`);
+          } else {
+            const mergedAvailable = isIdTableExist.merged_available || [];
+            if (!mergedAvailable.includes(data.id)) {
+              mergedAvailable.push(data.id);
+              isIdTableExist.merged_available = mergedAvailable;
+              await TableRepository.update(tableId, isIdTableExist);
+            }
+          }
+        }));
+      } else {
+        const currentMergedAvailable = isExist.merged_available || [];
+        for (const tableId of currentMergedAvailable) {
+          const isIdTableExist = await TableRepository.getById(tableId);
+          if (isIdTableExist) {
+            const mergedAvailable = isIdTableExist.merged_available || [];
+            const updatedMergedAvailable = mergedAvailable.filter(id => id !== isExist.id);
+            isIdTableExist.merged_available = updatedMergedAvailable;
+            await TableRepository.update(tableId, isIdTableExist);
+          }
+        }
+      }
+    }
+    if (file && isExist.image_uri) {
+      deleteFileIfExists(isExist.image_uri);
+    }
+    let table = await this.TableRepository.update(id, data);
+    table = camelize(table);
+    return table;
+  };
+  delete = async id => {
+    const params = {
+      where: {
+        deleted_at: null
+      }
+    };
+    const isExist = await this.TableRepository.getById(id, params);
+    if (!isExist) {
+      throw BaseError.notFound("Table does not exist");
+    }
+    await this.TableRepository.delete(id);
+  };
+  deletePermanent = async id => {
+    const isExist = await this.TableRepository.getById(id, {
+      include: {
+        detail_reservasis: true
+      }
+    });
+    if (!isExist) {
+      throw BaseError.notFound("Table does not exist");
+    }
+    if (!isExist.deleted_at) {
+      throw BaseError.badRequest("Table is not deleted yet");
+    }
+    if (isExist.detail_reservasis.length > 0) {
+      throw BaseError.badRequest("Table cannot be deleted permanently because there are reservasions that use this Table");
+    }
+    const tablesUsingThisId = await this.TableRepository.findAllWithMergedAvailable(isExist.id);
+    if (tablesUsingThisId.length > 0) {
+      await Promise.all(tablesUsingThisId.map(async table => {
+        const mergedAvailable = table.merged_available || [];
+        const updatedMergedAvailable = mergedAvailable.filter(mergedId => mergedId !== id);
+        table.merged_available = updatedMergedAvailable;
+        await this.TableRepository.update(table.id, table);
+      }));
+    }
+    if (isExist.image_uri) {
+      deleteFileIfExists(isExist.image_uri);
+    }
+    await this.TableRepository.deletePermanent(id);
+  };
+  suggestion = async inputData => {
+    let {
+      data
+    } = await this.TableRepository.get({
+      where: _objectSpread({}, inputData && _objectSpread(_objectSpread({}, inputData.isOutdoor !== undefined && {
+        is_outdoor: inputData.isOutdoor
+      }), {
+        is_active: true
+      }))
+    });
+    const startDateString = `${inputData.date}T${inputData.startTime}`;
+    const endDateString = `${inputData.date}T${inputData.endTime}`;
+    const startDate = new Date(startDateString);
+    const endDate = new Date(endDateString);
+    const availableTables = [];
+    for (const item of data) {
+      const table = await db.table.findUnique({
+        where: {
+          id: item.id,
+          deleted_at: null,
+          is_active: true,
+          is_outdoor: inputData.isOutdoor
+        }
+      });
+      if (table) {
+        const bookedTable = await db.detailReservasi.findMany({
+          where: {
+            table_id: table.id,
+            reservasi: {
+              start: {
+                lte: endDate
+              },
+              end: {
+                gte: startDate
+              },
+              deleted_at: null
+            }
+          }
+        });
+        if (bookedTable.length === 0) {
+          availableTables.push(table);
+        }
+      }
+    }
+    let tables = [];
+    availableTables.forEach(table => {
+      if (inputData.capacity >= table.min_capacity && inputData.capacity <= table.max_capacity) {
+        tables.push(table);
+      }
+    });
+    function findValidCombinations(data, capacity) {
+      const result = new Set();
+      function generateCombinations(current, remaining, currentMin, currentMax) {
+        if (current.length >= 2 && currentMin <= capacity && capacity <= currentMax) {
+          // Convert current array of objects to a sorted string representation for uniqueness
+          const combination = JSON.stringify(current.sort((a, b) => a.id.localeCompare(b.id)));
+          result.add(combination);
+        }
+        for (let i = 0; i < remaining.length; i++) {
+          const next = remaining[i];
+          if (current.some(item => item.id === next.id)) continue; // Check if already included
+          if (!current.every(item => next.merged_available?.includes(item.id))) continue; // Check allowed combinations
+
+          generateCombinations([...current, next],
+          // Add the entire object
+          remaining.filter((_, index) => index > i),
+          // Filter remaining
+          currentMin + next.min_capacity, currentMax + next.max_capacity);
+        }
+      }
+      for (let i = 0; i < data.length; i++) {
+        generateCombinations([data[i]], data.filter((_, index) => index !== i), data[i].min_capacity, data[i].max_capacity);
+      }
+      return Array.from(result).map(combination => JSON.parse(combination));
+    }
+    const mergedTables = findValidCombinations(availableTables, inputData.capacity);
+    return {
+      tables: tables,
+      mergedTables: mergedTables
+    };
+  };
+}
+export default new TableServices();

@@ -9,5 +9,8 @@ class BaseError extends Error {
   static notFound(message = "Resource does not exist") {
     return new BaseError(statusCodes.NOT_FOUND.code, statusCodes.NOT_FOUND.message, "Resource Not Found", message);
   }
+  static badRequest(message = "Bad Request") {
+    return new BaseError(statusCodes.BAD_REQUEST.code, statusCodes.BAD_REQUEST.message, "Bad Request", message);
+  }
 }
 export default BaseError;

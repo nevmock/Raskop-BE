@@ -5,7 +5,6 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 import camelize from "camelize";
 import BaseError from "../../base_classes/base-error.js";
-import statusCodes from "../../errors/status-codes.js";
 import { convertKeysToSnakeCase } from "../../utils/convert-key.js";
 import SupplierRepository from "./supplier-repository.js";
 import { snakeCase } from "change-case";
@@ -43,7 +42,11 @@ class SupplierServices {
           contains: search
         }
       }]
-    }), advSearch && _objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread({}, advSearch.contact && {
+    }), advSearch && _objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread(_objectSpread({}, advSearch.id && {
+      id: {
+        contains: advSearch.id
+      }
+    }), advSearch.contact && {
       contact: {
         contains: advSearch.contact
       }
@@ -58,9 +61,7 @@ class SupplierServices {
     }), advSearch.isActive !== undefined && {
       is_active: advSearch.isActive
     }), (advSearch.withDeleted === "false" || advSearch.withDeleted === false) && {
-      deleted_at: {
-        not: null
-      }
+      deleted_at: null
     }), advSearch.address && {
       address: {
         contains: advSearch.address
@@ -73,8 +74,6 @@ class SupplierServices {
       }
     }), advSearch.type && {
       type: advSearch.type
-    }), advSearch.id && {
-      id: advSearch.id
     }), (advSearch.startDate || advSearch.endDate) && {
       created_at: _objectSpread(_objectSpread({}, advSearch.startDate && {
         gte: new Date(advSearch.startDate)
@@ -133,8 +132,11 @@ class SupplierServices {
   };
   deletePermanent = async id => {
     const isExist = await this.SupplierRepository.getById(id);
-    if (!isExist || isExist.deleted_at) {
+    if (!isExist) {
       throw BaseError.notFound("Supplier does not exist");
+    }
+    if (!isExist.deleted_at) {
+      throw BaseError.badRequest("Supplier is not deleted yet");
     }
     await this.SupplierRepository.deletePermanent(id);
   };

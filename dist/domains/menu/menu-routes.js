@@ -7,6 +7,7 @@ import { createUploadMiddleware } from "../../middlewares/upload-middleware.js";
 class MenuRoutes extends BaseRoutes {
   routes() {
     this.router.get("/", [tryCatch(MenuController.index)]);
+    this.router.get("/:id", [tryCatch(MenuController.show)]);
     this.router.post("/", [createUploadMiddleware("menu"), MenuController.createOrUpdate]);
     this.router.delete("/", [tryCatch(MenuController.delete)]);
   }
