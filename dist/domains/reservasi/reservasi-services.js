@@ -237,6 +237,10 @@ class ReservasiServices {
       }
       let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod);
       return transaction;
+    }, {
+      maxWait: 5000,
+      // 5 seconds max wait to connect to prisma
+      timeout: 20000 // 20 seconds before the transaction times out
     });
   };
   updateStatusReservasi = async (id, status) => {
