@@ -36,7 +36,7 @@ class MenuController {
       });
 
       if (validated.error) {
-        next(validated.error);
+        return next(validated.error);
       }
 
       if (req.file) {
