@@ -45,6 +45,7 @@ class BaseRepository {
     }
     
     async update(id, data) {
+        delete data.id;
         return this.model.update({
             where: {
                 id: id,

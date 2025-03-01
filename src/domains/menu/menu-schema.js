@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 export const menuSchema = Joi.object({
-  id: Joi.string().guid().optional().messages({
+  id: Joi.string().guid().optional().min(3).messages({
     "string.base": "Id must be string",
     "string.guid": "Id must be guid",
   }),
