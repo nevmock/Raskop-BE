@@ -129,25 +129,25 @@ class ReservasiServices {
             let dataDetailReservasi = [];
 
             data.tables = [... new Set(data.tables)];
-            
-            for (const tableId of data.tables) {
-                const table = await tx.table.findUnique({
-                    where: {
-                        id: tableId,
-                    }
-                })
-        
-                if (!table || table.deleted_at) {
-                    throw BaseError.badRequest(`Table with id ${tableId} does not exist`);
-                }
 
-                if (!table.is_active){
-                    throw BaseError.badRequest(`Table with id ${tableId} is not active`);
+            const tables = await tx.table.findMany({
+                where: {
+                    id: {
+                        in: data.tables
+                    },
+                    is_active: true,
+                    deleted_at: null
                 }
+            })
 
+            if (tables.length != data.tables.length){
+                throw BaseError.badRequest("Some tables are not active or does not exist");
+            }
+
+            for (const table of tables) {
                 const bookedTable = await tx.detailReservasi.findMany({
                     where: {
-                        table_id: tableId,
+                        table_id: table.id,
                         reservasi: {
                             start: {
                                 lte: data.end
@@ -161,7 +161,7 @@ class ReservasiServices {
                 })
 
                 if (bookedTable.length > 0){
-                    throw BaseError.badRequest(`Table with id ${tableId} is already booked`);       
+                    throw BaseError.badRequest(`Table with id ${table.id} is already booked`);       
                 }
 
                 sumMinimumTableCapacity += table.min_capacity;
@@ -182,47 +182,55 @@ class ReservasiServices {
 
             let menus = [];
             // object prisma 
-            for (const menuItem of data.menus) {
-                let menu = await tx.menu.findUnique({
-                    where: {
-                        id: menuItem.id,
-                    }
-                });
-        
-                if (!menu || menu.deleted_at) {
-                    throw BaseError.badRequest(`Menu with id ${menuItem.id} does not exist`);
-                }
 
-                if (!menu.is_active){
-                    throw BaseError.badRequest(`Menu with id ${menuItem.id} is not active`);
-                }
+            console.log(data.menus);
+            // get the id on menus to array
+            const menuIds = data.menus.map((menu) => {
+                return menu.id;
+            });
 
-                menu = await tx.menu.update({
+            const dataMenus = await tx.menu.findMany({
+                where: {
+                    id: {
+                        in: menuIds
+                    },
+                    is_active: true,
+                    deleted_at: null
+                }
+            });
+
+            if (dataMenus.length != data.menus.length){
+                throw BaseError.badRequest("Some menus are not active or does not exist");
+            }
+
+            for (const menu of data.menus) {
+                const menuUpdate = await tx.menu.update({
                     where: {
-                        id: menuItem.id,
+                        id: menu.id,
                     },
                     data: {
                         qty: {
-                            decrement: menuItem.quantity
+                            decrement: menu.quantity
                         }
                     }
                 });
 
-                if (menu.qty < 0){
-                    throw BaseError.badRequest(`Quantity Menu with id ${menuItem.id} is out of stock`);
+                if (menuUpdate.qty < 0){
+                    throw BaseError.badRequest(`Quantity Menu with id ${menu.id} is out of stock`);
                 }
 
-                sumTotalMenu += menuItem.quantity;
+                sumTotalMenu += menu.quantity;
 
                 dataOrders.order_detail.create.push({
-                    menu_id: menu.id,
-                    qty: menuItem.quantity,
-                    price: menu.price,
-                    note: menuItem.note
+                    menu_id: menuUpdate.id,
+                    qty: menu.quantity,
+                    price: menuUpdate.price,
+                    note: menu.note
                 });
 
                 menus.push(menu);
             }
+
 
             if (sumTotalMenu < sumMinimumTableCapacity){
                 throw BaseError.badRequest(`Total menu must be more than or equal to total table capacity`);
@@ -244,30 +252,18 @@ class ReservasiServices {
             delete data.menus;
             delete data.payment_method;
 
-            // console.log(data)
-
             let reservasi = await tx.reservasi.create({
                 data: data,
+                include: {
+                    orders: true
+                }
             });
 
             if (!reservasi){
                 throw Error("Failed to create reservasi");
             }
-        
-            const order = await tx.order.findFirst({
-                where: {
-                    reservasi_id: reservasi.id,
-                },
-                select: {
-                    id: true
-                }
-            });
 
-            if (!order){
-                throw Error("Failed to find order");
-            }
-
-            let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod);
+            let transaction = await this.TransactionServices.createMidtransTransaction(tx, reservasi.orders[0].id, paymentMethod);
 
             return transaction;
         }, {
