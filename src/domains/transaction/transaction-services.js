@@ -119,101 +119,80 @@ class TransactionServices {
 
     async createMidtransTransaction(tx, orderId, paymentMethod) {
         const dataOrder = await tx.order.findUnique({   
-            where: {
-                id: orderId
-            },
-            include:{
+            where: { id: orderId },
+            include: {
                 reservasi: {
-                    include : {
-                    detail_reservasis: {
-                        include: {
-                            table : true
-                        }
-                    }
+                    include: {
+                        detail_reservasis: { include: { table: true } }
                     }
                 },
                 transaction: true,
-                order_detail : {
-                    include: {
-                        menu : true
-                    }
-                }, 
+                order_detail: { include: { menu: true } }
             }
         }, {
             maxWait: 10000, // 10 seconds max wait to connect to prisma
             timeout: 20000, // 20 seconds before the transaction times out
         });
-
-        if (!dataOrder){
+    
+        if (!dataOrder) {
             throw Error("Failed to find order");
         }
-
-        const authString = btoa(`${process.env.MIDTRANS_SERVER_KEY}:`);
-
+    
         let gross_amount = dataOrder.order_detail.reduce((acc, order_detail) => {
             return acc + (order_detail.qty * order_detail.price);
         }, 0);
-
+    
         let item_details = dataOrder.order_detail.map((order_detail) => ({
             id: order_detail.menu_id,
             price: order_detail.price,
             quantity: order_detail.qty,
             name: order_detail.menu.name
         }));
-
+    
         let id_order = dataOrder.id;
-
-        if (dataOrder.reservasi && dataOrder.reservasi.half_payment){ 
-            let discount_dp = gross_amount * (50 / 100);
-
+    
+        if (dataOrder.reservasi && dataOrder.reservasi.half_payment) { 
+            let discount_dp = gross_amount * 0.5;
             gross_amount -= discount_dp;
-
+    
             item_details.push({
                 id: `DP-50%`,
                 price: -discount_dp,
                 quantity: 1,
                 name: `DP-50%`
             });
-
+    
             id_order = `${id_order}-${new Date().getTime()}`;
         }
-
+    
         item_details.push({
             id: "admin_fee",
             price: paymentMethod === "bank_transfer" ? 4000 : Math.ceil(gross_amount * 0.007),
             quantity: 1,
             name: paymentMethod === "bank_transfer" ? "Admin Bank Transfer" : "Admin Qris"
         });
-
+    
         gross_amount += paymentMethod === "bank_transfer" ? 4000 : Math.ceil(gross_amount * 0.007);
-
-        console.log(id_order)
-
+    
+        console.log(id_order);
+    
         const midTransPayload = {
-            transaction_details: {
-                order_id: id_order,
-                gross_amount
-            },
-            item_details: item_details,
+            transaction_details: { order_id: id_order, gross_amount },
+            item_details,
             customer_details: {
                 first_name: dataOrder.order_by,
                 phone: dataOrder.phone_number,
             },
-            enabled_payments: [
-                paymentMethod
-            ],
+            enabled_payments: [paymentMethod],
             expiry: {
                 start_time: new Date().toISOString().replace('T', ' ').split('.')[0] + ' +0000',
                 unit: "minutes",
                 duration: 1
             },
-            metadata: {
-                "order_id": dataOrder.id
-            }
-        }
-        
-        // console.log(midTransPayload)
-
+            metadata: { "order_id": dataOrder.id }
+        };
+    
+        const authString = btoa(`${process.env.MIDTRANS_SERVER_KEY}:`);
         const response = await fetch(`${process.env.MIDTRANS_APP_URL}/snap/v1/transactions`, {
             method: 'POST',
             headers: {
@@ -222,18 +201,19 @@ class TransactionServices {
                 'Authorization': `Basic ${authString}`,
             },
             body: JSON.stringify(midTransPayload)
-        })  
-
+        });
+    
         const data = await response.json();
-
-        console.log(data, response.status, id_order)
-
-        if (response.status !== 201){
+    
+        console.log(data, response.status, id_order);
+    
+        if (response.status !== 201) {
             throw Error("Failed to create transaction");
         }
-
+    
         return camelize(data);
     }
+    
 
 
     async trxNotif(data){
