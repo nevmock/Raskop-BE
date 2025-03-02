@@ -7,6 +7,7 @@ import crypto from "crypto";
 import OrderRepository from "../order/order-repository.js";
 import MenuRepository from "../menu/menu-repository.js";
 import ReservasiRepository from "../reservasi/reservasi-repository.js";
+import db from "../../utils/prisma.js";
 
 class TransactionServices {
     constructor() {
@@ -117,8 +118,8 @@ class TransactionServices {
     }
 
 
-    async createMidtransTransaction(tx, orderId, paymentMethod) {
-        const dataOrder = await tx.order.findUnique({   
+    async createMidtransTransaction(orderId, paymentMethod) {
+        const dataOrder = await db.order.findUnique({   
             where: {
                 id: orderId
             },

@@ -113,7 +113,7 @@ class ReservasiServices {
     };
 
     create = async (data) => {
-        return await this.ReservasiRepository.withTransaction(async (tx) => {
+        const reservasiId = await this.ReservasiRepository.withTransaction(async (tx) => {
             data = convertKeysToSnakeCase(data);
 
             data.start = new Date(data.start);
@@ -246,8 +246,6 @@ class ReservasiServices {
                 create : dataOrders
             };
 
-            let paymentMethod = data.payment_method;
-
             delete data.tables;
             delete data.menus;
             delete data.payment_method;
@@ -263,13 +261,19 @@ class ReservasiServices {
                 throw Error("Failed to create reservasi");
             }
 
-            let transaction = await this.TransactionServices.createMidtransTransaction(tx, reservasi.orders[0].id, paymentMethod);
-
-            return transaction;
+            return reservasi.orders[0].id;
         }, {
             maxWait: 10000, // 10 seconds max wait to connect to prisma
             timeout: 20000, // 20 seconds before the transaction times out
         });
+
+        if (!reservasiId) {
+            throw Error("Failed to create reservasi");
+        }
+
+        let transaction = await this.TransactionServices.createMidtransTransaction(reservasiId, data.payment_method);
+
+        return transaction;
     }
 
     updateStatusReservasi = async (id, status) => {
