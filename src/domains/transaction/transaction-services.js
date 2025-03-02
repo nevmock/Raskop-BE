@@ -129,6 +129,9 @@ class TransactionServices {
                 transaction: true,
                 order_detail: { include: { menu: true } }
             }
+        }, {
+            maxWait: 10000,
+            timeout: 20000
         });
     
         if (!dataOrder) {
