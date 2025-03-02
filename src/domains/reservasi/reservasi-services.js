@@ -129,7 +129,7 @@ class ReservasiServices {
             let dataDetailReservasi = [];
 
             data.tables = [... new Set(data.tables)];
-
+            
             for (const tableId of data.tables) {
                 const table = await tx.table.findUnique({
                     where: {
