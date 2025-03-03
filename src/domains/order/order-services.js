@@ -90,6 +90,8 @@ class OrderServices {
   };
 
   create = async (data) => {
+    const paymentMethod = data.paymentMethod;
+
     const orderId = await this.OrderRepository.withTransaction(async (tx) => {
       data = convertKeysToSnakeCase(data);
 
@@ -167,7 +169,7 @@ class OrderServices {
       return order.id
     });
 
-    if (!order){
+    if (!orderId){
       throw BaseError.badRequest("Failed to create order");
     }
 
