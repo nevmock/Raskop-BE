@@ -113,6 +113,8 @@ class ReservasiServices {
     };
 
     create = async (data) => {
+        const paymentMethod = data.paymentMethod;
+
         const reservasiId = await this.ReservasiRepository.withTransaction(async (tx) => {
             data = convertKeysToSnakeCase(data);
 
@@ -271,7 +273,9 @@ class ReservasiServices {
             throw Error("Failed to create reservasi");
         }
 
-        let transaction = await this.TransactionServices.createMidtransTransaction(reservasiId, data.payment_method);
+        // console.log(paymentMethod)
+
+        let transaction = await this.TransactionServices.createMidtransTransaction(reservasiId, paymentMethod);
 
         return transaction;
     }
