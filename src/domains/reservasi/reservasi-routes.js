@@ -19,12 +19,11 @@ class ReservasiRoutes extends BaseRoutes {
             tryCatch(ReservasiController.create)
         ]);
 
-        this.router.post('/:id/update-status', [
+        this.router.post('/update-status', [
             validateCredentials(updateStatusReservasiSchema),
             tryCatch(ReservasiController.updateStatusReservasi)
         ])
-
-        this.router.post('/:id/cancel', [
+        this.router.post('/cancel', [
             validateCredentials(cancelReservasiSchema),
             tryCatch(ReservasiController.cancelReservasi)
         ])
