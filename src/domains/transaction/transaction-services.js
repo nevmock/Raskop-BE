@@ -108,12 +108,12 @@ class TransactionServices {
 
         if (!order.reservasi_id){
             return await this.TransactionRepository.withTransaction(async (tx) => {
-                return await this.createMidtransTransaction(tx, order.id, data.payment_method);
+                return await this.createMidtransTransaction(order.id, data.payment_method);
             })
         }
             
         return await this.TransactionRepository.withTransaction(async (tx) => {
-            return await this.createMidtransTransaction(tx, order.id, data.payment_method);
+            return await this.createMidtransTransaction(order.id, data.payment_method);
         })
     }
 
