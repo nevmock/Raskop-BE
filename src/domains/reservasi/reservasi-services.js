@@ -278,6 +278,8 @@ class ReservasiServices {
 
         let transaction = await this.TransactionServices.createMidtransTransaction(reservasiId, paymentMethod);
 
+        transaction.reservasiId = reservasiId;
+
         return transaction;
     }
 
