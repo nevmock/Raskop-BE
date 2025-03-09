@@ -291,14 +291,18 @@ class TransactionServices {
                         await this.OrderRepository.update(order.id, { status: "BELUM_DIBUAT" });
                         console.log("Reservasi Status Updated to BELUM_DIBUAT");
                     }
+
+                    console.log(`https://wa.me/${order.phone_number}?text=Halo%20kak%${order.order_by}%2C%20Reservasi%20kakak%20dengan%20ID%20${order.reservasi_id}%20sudah%20berhasil%20dibuat%2C%20ditunggu%20kehadiran%20Kakak%20di%20Rasa%20Kopi%20yaa%20😊`)
                 } else {
                     await this.OrderRepository.update(order.id, { status: "BELUM_DIBUAT" });
                     console.log("Order Status Updated to BELUM_DIBUAT");
+                    console.log(`https://wa.me/${order.phone_number}?text=Halo%20kak%${order.order_by}%2C%20Order%20kakak%20dengan%20ID%20${order.id}%20sudah%20berhasil%20dibuat%2C%20ditunggu%20pesanannya%20yaa%20😊`)
                 }
                 
             } else if (order.status === "MENUNGGU_PELUNASAN"){
                 this.OrderRepository.update(order.id, { status: "BELUM_DIBUAT" });
                 console.log("Reservasi Status Updated to BELUM_DIBUAT");
+                console.log(`https://wa.me/${order.phone_number}?text=Halo%20kak%${order.order_by}%2C%20Reservasi%20kakak%20dengan%20ID%20${order.reservasi_id}%20sudah%20lunas%2C%20ditunggu%20pesanannya%20yaa%20😊`)
             }
             
         } else if (data.transaction_status === "expire"){

@@ -265,9 +265,6 @@ class ReservasiServices {
             }
 
             return reservasi.orders[0].id;
-        }, {
-            maxWait: 10000, // 10 seconds max wait to connect to prisma
-            timeout: 20000, // 20 seconds before the transaction times out
         });
 
         if (!reservasiId) {
