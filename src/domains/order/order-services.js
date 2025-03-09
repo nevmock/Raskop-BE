@@ -28,7 +28,7 @@ class OrderServices {
         ...(advSearch.orderBy && { order_by: { contains: advSearch.orderBy } }),
         ...(advSearch.phoneNumber && { phone_number: { contains: advSearch.phoneNumber } }),
         ...(advSearch.status && { status: { contains: advSearch.status } }),
-        ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+        ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
         ...(advSearch.reservasiId && { reservasi_id: { contains: advSearch.reservasiId } }),
         ...((advSearch.withReservasi === "true" || advSearch.withReservasi === true) ? {} : { reservasi_id: null }),
         ...(advSearch.id && { id: { contains: advSearch.id } }),

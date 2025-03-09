@@ -32,7 +32,18 @@ const options = {
             //     },
             // },
             {
-                url: 'https://raskop-backend.kakashispiritnews.my.id/api/{version}',
+                url: 'https://raskop-be-stag.cciunitel.com/api/{version}',
+                description: 'Staging server',
+                variables: {
+                    version: {
+                        default: 'v1',
+                        enum: ['v1', 'v2'],
+                        description: 'API version',
+                    },
+                },
+            },
+            {
+                url: 'https://raskop-be.cciunitel.com/api/{version}',
                 description: 'Production server',
                 variables: {
                     version: {

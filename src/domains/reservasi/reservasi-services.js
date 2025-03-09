@@ -47,7 +47,7 @@ class ReservasiServices {
                 ...(advSearch.community && { community: advSearch.community }),
                 ...(advSearch.phoneNumber && { phone_number: advSearch.phoneNumber }),
                 ...(advSearch.note && { note: { contains: advSearch.note } }),
-                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: { not: null } }),
+                ...((advSearch.withDeleted === "false" || advSearch.withDeleted === false) && { deleted_at: null }),
                 ...(advSearch.id && { id: advSearch.id }),
                 ...((advSearch.startDate || advSearch.endDate) && {
                     created_at: {
