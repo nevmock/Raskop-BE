@@ -71,9 +71,9 @@ export const tableSuggestionSchema = Joi.object({
     .required()
     .custom((value, helpers) => {
       const startTime = moment(helpers.state.ancestors[0].startTime).utc();
-      const minEndTime = startTime.clone().add(4, "hours");
+      const expectedEndTime = startTime.clone().add(4, "hours");
 
-      if (moment(value).utc().isBefore(minEndTime)) {
+      if (!moment(value).utc().isSame(expectedEndTime)) {
         return helpers.error("date.invalid");
       }
 
@@ -83,7 +83,7 @@ export const tableSuggestionSchema = Joi.object({
     .messages({
       "date.base": "End time must be a valid date",
       "date.empty": "End time is required",
-      "date.invalid": "End time must be at least 4 hours after start time",
+      "date.invalid": "End time must be exactly 4 hours after start time",
       "date.greater": "End time must be greater than start time",
     }),
 });
