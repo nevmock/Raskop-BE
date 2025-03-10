@@ -1,5 +1,6 @@
 import JoiBase from "joi";
 import JoiDate from "@joi/date";
+import moment from "moment";
 
 const Joi = JoiBase.extend(JoiDate);
 
@@ -50,9 +51,9 @@ export const tableSchema = Joi.object({
 });
 
 export const tableSuggestionSchema = Joi.object({
-  capacity: Joi.number().integer().min(1).required().messages({
+  capacity: Joi.number().integer().min(10).required().messages({
     "number.base": "Capacity must be a number",
-    "number.min": "Capacity must be greater than 0",
+    "number.min": "Capacity must be at least 10 person",
   }),
   isOutdoor: Joi.boolean().required().messages({
     "boolean.base": "Is outdoor must be boolean",
@@ -65,9 +66,24 @@ export const tableSuggestionSchema = Joi.object({
     "date.base": "Start time must be a valid date",
     "date.empty": "Start time is required",
   }),
-  endTime: Joi.date().format("HH:mm:ss").greater(Joi.ref("startTime")).required().messages({
-    "date.base": "End time must be a valid date",
-    "date.empty": "End time is required",
-    "date.greater": "End time must be greater than start time",
-  }),
+  endTime: Joi.date()
+    .format("HH:mm:ss")
+    .required()
+    .custom((value, helpers) => {
+      const startTime = moment(helpers.state.ancestors[0].startTime).utc();
+      const minEndTime = startTime.clone().add(4, "hours");
+
+      if (moment(value).utc().isBefore(minEndTime)) {
+        return helpers.error("date.invalid");
+      }
+
+      return value;
+    })
+    .greater(Joi.ref("startTime"))
+    .messages({
+      "date.base": "End time must be a valid date",
+      "date.empty": "End time is required",
+      "date.invalid": "End time must be at least 4 hours after start time",
+      "date.greater": "End time must be greater than start time",
+    }),
 });
