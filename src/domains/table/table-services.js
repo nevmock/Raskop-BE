@@ -366,6 +366,8 @@ class TableServices {
       });
     }
 
+    suggestTables = camelize(suggestTables);
+
     return {
       tables: suggestTables,
     };
