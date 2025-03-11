@@ -265,7 +265,7 @@ class ReservasiServices {
                 throw Error("Failed to create reservasi");
             }
 
-            let transaction = await this.TransactionServices.createMidtransTransaction(tx, reservasi.id, paymentMethod);
+            let transaction = await this.TransactionServices.createMidtransTransaction(tx, reservasi.orders[0].id, paymentMethod);
 
             transaction.reservasiId = reservasi.id;
 
