@@ -114,9 +114,7 @@ class ReservasiServices {
     };
 
     create = async (data) => {
-        const paymentMethod = data.paymentMethod;
-
-        const reservasiId = await this.ReservasiRepository.withTransaction(async (tx) => {
+        return await this.ReservasiRepository.withTransaction(async (tx) => {
             data = convertKeysToSnakeCase(data);
 
             data.start = new Date(data.start);
@@ -251,6 +249,9 @@ class ReservasiServices {
 
             delete data.tables;
             delete data.menus;
+
+            const paymentMethod = data.payment_method;
+
             delete data.payment_method;
 
             let reservasi = await tx.reservasi.create({
@@ -264,20 +265,12 @@ class ReservasiServices {
                 throw Error("Failed to create reservasi");
             }
 
-            return reservasi.orders[0].id;
+            let transaction = await this.TransactionServices.createMidtransTransaction(tx, reservasi.id, paymentMethod);
+
+            transaction.reservasiId = reservasi.id;
+
+            return transaction;
         });
-
-        if (!reservasiId) {
-            throw Error("Failed to create reservasi");
-        }
-
-        // console.log(paymentMethod)
-
-        let transaction = await this.TransactionServices.createMidtransTransaction(reservasiId, paymentMethod);
-
-        transaction.reservasiId = reservasiId;
-
-        return transaction;
     }
 
     updateStatusReservasi = async (id, status) => {

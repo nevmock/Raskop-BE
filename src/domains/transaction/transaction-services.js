@@ -118,8 +118,8 @@ class TransactionServices {
     }
 
 
-    async createMidtransTransaction(orderId, paymentMethod) {
-        const dataOrder = await db.order.findUnique({   
+    async createMidtransTransaction(tx, orderId, paymentMethod) {
+        const dataOrder = await tx.order.findUnique({   
             where: {
                 id: orderId
             },
@@ -224,7 +224,7 @@ class TransactionServices {
 
         const data = await response.json();
 
-        console.log(data, response.status, id_order)
+        // console.log(data, response.status, id_order)
 
         if (response.status !== 201){
             throw Error("Failed to create transaction");
