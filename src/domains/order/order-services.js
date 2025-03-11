@@ -91,9 +91,7 @@ class OrderServices {
   };
 
   create = async (data) => {
-    const paymentMethod = data.paymentMethod;
-
-    const orderId = await this.OrderRepository.withTransaction(async (tx) => {
+    return await this.OrderRepository.withTransaction(async (tx) => {
       data = convertKeysToSnakeCase(data);
 
       let dataOrder = {
@@ -164,19 +162,17 @@ class OrderServices {
       })
 
       if (!order){
-        throw BaseError.badRequest("Failed to create order");
+        throw new Error("Failed to create order");
       }
+      
+      let transaction = await this.TransactionServices.createMidtransTransaction(tx, order.id, paymentMethod);
 
-      return order.id
-    });
-
-    if (!orderId){
-      throw BaseError.badRequest("Failed to create order");
-    }
-
-    let transaction = await this.TransactionServices.createMidtransTransaction(orderId, paymentMethod)
+      if (!transaction){
+        throw new Error("Failed to create transaction");
+      }
   
-    return transaction;
+      return transaction;
+    });    
   };
 
   delete = async (id) => {
