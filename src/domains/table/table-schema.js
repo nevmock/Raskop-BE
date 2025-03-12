@@ -58,32 +58,26 @@ export const tableSuggestionSchema = Joi.object({
   isOutdoor: Joi.boolean().required().messages({
     "boolean.base": "Is outdoor must be boolean",
   }),
-  date: Joi.date().required().messages({
-    "date.base": "Date must be a valid date",
-    "date.empty": "Date is required",
+  startTime: Joi.date().format("YYYY-MM-DD HH:mm").min(new Date()).required().messages({
+    "date.base": "Start must be a date",
+    "date.min": "Start must be at least the current time",
   }),
-  startTime: Joi.date().format("HH:mm:ss").required().messages({
-    "date.base": "Start time must be a valid date",
-    "date.empty": "Start time is required",
-  }),
-  endTime: Joi.date()
-    .format("HH:mm:ss")
+
+  endTime: Joi.date().format("YYYY-MM-DD HH:mm")
+    .greater(Joi.ref("start"))
     .required()
     .custom((value, helpers) => {
-      const startTime = moment(helpers.state.ancestors[0].startTime).utc();
-      const expectedEndTime = startTime.clone().add(4, "hours");
-
-      if (!moment(value).utc().isSame(expectedEndTime)) {
-        return helpers.error("date.invalid");
+      const start = helpers.state.ancestors[0].start; // Get the start value
+      const diffHours = (new Date(value) - new Date(start)) / (1000 * 60 * 60); // Convert diff to hours
+      
+      if (diffHours !== 4) {
+        return helpers.error("date.exactDiff", { message: "End must be exactly 4 hours after start" });
       }
-
       return value;
     })
-    .greater(Joi.ref("startTime"))
     .messages({
-      "date.base": "End time must be a valid date",
-      "date.empty": "End time is required",
-      "date.invalid": "End time must be exactly 4 hours after start time",
-      "date.greater": "End time must be greater than start time",
-    }),
+      "date.base": "End must be a date",
+      "date.greater": "End must be greater than start",
+      "date.exactDiff": "End must be exactly 4 hours after start",
+  }),
 });

@@ -30,12 +30,27 @@ const reservasiSchema = Joi.object({
     "string.max": "Note must be max 1500 character",
   }),
 
-  start: Joi.date().format("YYYY-MM-DD HH:mm").required().messages({
-    "date.base": "Start must be date",
+  start: Joi.date().format("YYYY-MM-DD HH:mm").min(new Date()).required().messages({
+    "date.base": "Start must be a date",
+    "date.min": "Start must be at least the current time",
   }),
 
-  end: Joi.date().format("YYYY-MM-DD HH:mm").greater(Joi.ref("start")).required().messages({
-    "date.base": "End must be date",
+  end: Joi.date().format("YYYY-MM-DD HH:mm")
+    .greater(Joi.ref("start"))
+    .required()
+    .custom((value, helpers) => {
+      const start = helpers.state.ancestors[0].start; // Get the start value
+      const diffHours = (new Date(value) - new Date(start)) / (1000 * 60 * 60); // Convert diff to hours
+      
+      if (diffHours !== 4) {
+        return helpers.error("date.exactDiff", { message: "End must be exactly 4 hours after start" });
+      }
+      return value;
+    })
+    .messages({
+      "date.base": "End must be a date",
+      "date.greater": "End must be greater than start",
+      "date.exactDiff": "End must be exactly 4 hours after start",
   }),
 
   tables: Joi.array().items(Joi.string().guid()).required().min(1).messages({
