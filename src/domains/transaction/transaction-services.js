@@ -203,7 +203,7 @@ class TransactionServices {
             expiry: {
                 start_time: new Date().toISOString().replace('T', ' ').split('.')[0] + ' +0000',
                 unit: "minutes",
-                duration: 1
+                duration: 5
             },
             metadata: {
                 "order_id": dataOrder.id
