@@ -254,8 +254,8 @@ class TableServices {
     });
 
 
-    const startDate = new Date(data.startTime);
-    const endDate = new Date(data.endTime);
+    const startDate = new Date(inputData.startTime);
+    const endDate = new Date(inputData.endTime);
 
     const availableTables = [];
     for (const item of data) {
