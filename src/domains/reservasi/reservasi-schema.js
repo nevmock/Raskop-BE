@@ -18,9 +18,12 @@ const reservasiSchema = Joi.object({
     "string.max": "community must be max 150 character",
   }),
 
-  phoneNumber: Joi.string().required().min(3).max(12).messages({
-    "string.min": "Phone Number must be min 3 character",
-    "string.max": "Phone Number must be max 12 character",
+  phoneNumber: Joi.string()
+    .pattern(/^\+62\d{9,13}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "Phone number must start with +62 and be between 10 to 15 digits long",
+      "string.empty": "Phone number is required",
   }),
 
   note: Joi.string().optional().max(1500).messages({
