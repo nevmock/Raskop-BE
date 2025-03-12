@@ -120,12 +120,6 @@ class ReservasiServices {
             data.start = new Date(data.start);
             data.end = new Date(data.end);
 
-            let totalHours = Math.abs(data.end - data.start) / 36e5;
-
-            if (totalHours < 4){
-                throw BaseError.badRequest("Minimum reservation time is 4 hours");
-            }
-
             let sumMinimumTableCapacity = 0;
             let dataDetailReservasi = [];
 
