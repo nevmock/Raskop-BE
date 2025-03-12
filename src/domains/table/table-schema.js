@@ -64,14 +64,14 @@ export const tableSuggestionSchema = Joi.object({
   }),
 
   endTime: Joi.date().format("YYYY-MM-DD HH:mm")
-    .greater(Joi.ref("start"))
+    .greater(Joi.ref("startTime"))
     .required()
     .custom((value, helpers) => {
-      const start = helpers.state.ancestors[0].start; // Get the start value
+      const start = helpers.state.ancestors[0].startTime; // Get the start value
       const diffHours = (new Date(value) - new Date(start)) / (1000 * 60 * 60); // Convert diff to hours
       
       if (diffHours !== 4) {
-        return helpers.error("date.exactDiff", { message: "End must be exactly 4 hours after start" });
+        return helpers.error("date.exactDiff", { message: "EndTime must be exactly 4 hours after start" });
       }
       return value;
     })
